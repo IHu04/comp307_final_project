@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professor Dashboard</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #d9d9d9;
+}
+
+/* NAVBAR */
+.topnav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: #e2291e;
+    color: white;
+    padding: 0 20px;
+}
+
+.topnav h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.topnav-right {
+    margin-left: auto;
+}
+
+.topnav-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.topnav-right a:hover {
+    text-decoration: underline;
+}
+
+/* LAYOUT */
+.container {
+    display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 250px;
+    height: calc(100vh - 80px);
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.sidebar h3 {
+    margin-top: 0;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: black;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.sidebar a:hover {
+    background: #f2f2f2;
+}
+
+/* MAIN */
+.main {
+    flex: 1;
+    padding: 20px;
+}
+
+/* SECTION TITLE */
+h2 {
+    margin-top: 0;
+}
+
+/* WEEK GRID */
+.week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+/* DAY CARD */
+.day {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    min-height: 200px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.day h4 {
+    margin-top: 0;
+}
+
+/* SLOT */
+.slot {
+    margin: 5px 0;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    transition: 0.2s;
+}
+
+.slot:hover {
+    transform: scale(1.02);
+}
+
+/* STATES */
+.available {
+    background: #d4f8d4;
+    border-color: #9be29b;
+}
+
+.unavailable {
+    background: #f8d4d4;
+    text-decoration: line-through;
+    border-color: #e29b9b;
+}
+
+/* BOOKING CARD */
+.booking-card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* BUTTON SYSTEM */
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #e2291e;
+    color: white;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #b22d0a;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="topnav">
+    <h2>McGill Bookings</h2>
+
+    <div class="topnav-right">
+        <a href="slots.html">Slots</a>
+        <a href="view.html">My Bookings</a>
+        <a href="teamup.html">Team Up</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h3>Menu</h3>
+    <a href="#" onclick="showTab('calendar')">Manage Availability</a>
+    <a href="#" onclick="showTab('bookings')">Student Bookings</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- CALENDAR -->
+<div id="calendarTab">
+
+<h2>Weekly Availability</h2>
+<p>Click a slot to toggle availability.</p>
+
+<div class="week" id="week"></div>
+
+</div>
+
+<!-- BOOKINGS -->
+<div id="bookingsTab" style="display:none">
+
+<h2>Bookings</h2>
+<div id="bookingList"></div>
+
+</div>
+
+</div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+let mySlots = [];
+
+/* ── INIT ──────────────────────────────────────────────────── */
+async function init() {
+  const user = await API.requireOwner();
+  if (!user) return;
+  await loadSlots();
+  await loadBookings();
+}
+
+/* ── SLOTS (Calendar tab) ───────────────────────────────────── */
+async function loadSlots() {
+  try {
+    const data = await API.get('/slots/mine');
+    mySlots = data.slots || [];
+    generateWeek();
+  } catch (e) {
+    document.getElementById('week').innerHTML = `<p style="color:#e2291e">Error: ${e.message}</p>`;
+  }
+}
+
+// Group slots by day-of-week abbreviation for the current week
+function slotsByDay() {
+  const map = {};
+  DAYS.forEach((d) => (map[d] = []));
+  mySlots.forEach((s) => {
+    const date = new Date(s.date + 'T00:00:00');
+    const dow = DAYS[date.getDay() === 0 ? 6 : date.getDay() - 1]; // Mon=0 … Sun=6
+    map[dow].push(s);
+  });
+  return map;
+}
+
+function generateWeek() {
+  const weekDiv = document.getElementById('week');
+  weekDiv.innerHTML = '';
+  const byDay = slotsByDay();
+
+  DAYS.forEach((day) => {
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'day';
+    let html = `<h4>${day}</h4>`;
+
+    const daySlots = byDay[day];
+    if (daySlots.length === 0) {
+      html += '<p style="font-size:12px;color:gray">No slots</p>';
+    } else {
+      daySlots.forEach((s) => {
+        const cls = s.status === 'active' ? 'available' : 'unavailable';
+        html += `
+          <div class="slot ${cls}" onclick="toggleSlot(${s.id}, '${s.status}')">
+            ${s.startTime.slice(0,5)}
+            <br><small>${s.status}</small>
+          </div>`;
+      });
+    }
+
+    dayDiv.innerHTML = html;
+    weekDiv.appendChild(dayDiv);
+  });
+}
+
+async function toggleSlot(id, currentStatus) {
+  try {
+    if (currentStatus === 'active') {
+      await API.patch(`/slots/${id}/deactivate`);
+    } else if (currentStatus === 'draft') {
+      await API.patch(`/slots/${id}/activate`);
+    }
+    await loadSlots();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+/* ── BOOKINGS tab ───────────────────────────────────────────── */
+async function loadBookings() {
+  const list = document.getElementById('bookingList');
+  list.innerHTML = '<p>Loading...</p>';
+
+  try {
+    const data = await API.get('/dashboard');
+    const appointments = (data.appointments || []).filter(
+      (a) => a.status === 'booked'
+    );
+
+    list.innerHTML = '';
+
+    if (!appointments.length) {
+      list.innerHTML = '<p>No bookings yet.</p>';
+      return;
+    }
+
+    appointments.forEach((appt) => {
+      const div = document.createElement('div');
+      div.className = 'booking-card';
+      div.innerHTML = `
+        <b>${appt.date} — ${appt.startTime.slice(0,5)} to ${appt.endTime.slice(0,5)}</b><br>
+        ${appt.otherParty ? 'Student: ' + appt.otherParty.name + ' (' + appt.otherParty.email + ')' : ''}
+        ${appt.mailtoUri ? `<br><a href="${appt.mailtoUri}" style="font-size:13px">✉ Email student</a>` : ''}
+      `;
+      list.appendChild(div);
+    });
+  } catch (e) {
+    list.innerHTML = `<p style="color:#e2291e">Error: ${e.message}</p>`;
+  }
+}
+
+/* ── TABS ───────────────────────────────────────────────────── */
+function showTab(tab) {
+  document.getElementById('calendarTab').style.display =
+    tab === 'calendar' ? 'block' : 'none';
+  document.getElementById('bookingsTab').style.display =
+    tab === 'bookings' ? 'block' : 'none';
+}
+
+init();
+
+</script>
+
+</body>
+</html>

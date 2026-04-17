@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professor</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #d9d9d9;
+}
+
+.topnav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: #e2291e;
+    padding: 0 20px;
+    color: white;
+}
+
+.nav-right {
+    margin-left: auto;
+}
+
+.nav-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.page-title {
+    padding: 20px;
+    margin: 0;
+}
+
+.form {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+}
+
+input {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+button.create {
+    background: #e2291e;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 10px;
+}
+
+#slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    width: 260px;
+    padding: 20px;
+    border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topnav">
+    <div><b>Professor Dashboard</b></div>
+    <div class="nav-right">
+        <a href="slots.html">Slots</a>
+        <a href="view.html">My Bookings</a>
+        <a href="teamup.html">Team Up</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<h2 class="page-title">Create Slots</h2>
+
+<div class="form">
+    <input id="date" type="date" placeholder="Date">
+    <input id="startTime" type="time" placeholder="Start time">
+    <input id="endTime" type="time" placeholder="End time">
+    <button class="create" onclick="create()">Create &amp; Activate</button>
+</div>
+<p id="prof-error" style="color:#e2291e;padding:0 20px;display:none;"></p>
+
+<div id="slots"></div>
+
+<script src="shared.js"></script>
+
+<script>
+async function init() {
+  const user = await API.requireOwner();
+  if (!user) return;
+  render();
+}
+
+async function create() {
+  const date      = document.getElementById('date').value;
+  const startTime = document.getElementById('startTime').value;
+  const endTime   = document.getElementById('endTime').value;
+  const errEl     = document.getElementById('prof-error');
+  errEl.style.display = 'none';
+
+  if (!date || !startTime || !endTime) {
+    errEl.textContent = 'Please fill in date, start time, and end time.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    // Create the slot as draft, then immediately activate it
+    const created = await API.post('/slots', {
+      slots: [{ date, startTime, endTime }],
+    });
+    const newSlotId = created.slots[0].id;
+    await API.patch(`/slots/${newSlotId}/activate`);
+
+    // Clear inputs
+    document.getElementById('date').value = '';
+    document.getElementById('startTime').value = '';
+    document.getElementById('endTime').value = '';
+
+    render();
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function render() {
+  const div = document.getElementById('slots');
+  div.innerHTML = '<p style="padding:0 20px">Loading...</p>';
+
+  try {
+    const { slots } = await API.get('/slots/mine');
+    div.innerHTML = '';
+
+    if (!slots.length) {
+      div.innerHTML = '<p style="padding:0 20px">No slots yet. Create one above.</p>';
+      return;
+    }
+
+    slots.forEach((s) => {
+      const el = document.createElement('div');
+      el.className = 'card';
+
+      const statusColor = s.status === 'booked' ? '#e2291e' : s.status === 'active' ? 'green' : 'gray';
+      const statusLabel = s.status === 'booked' ? 'Booked ❌' : s.status === 'active' ? 'Active 🟢' : 'Draft';
+
+      el.innerHTML = `
+        <b>${s.date}</b><br>
+        🕐 ${s.startTime.slice(0,5)} – ${s.endTime.slice(0,5)}<br><br>
+        <span style="color:${statusColor}">${statusLabel}</span>
+        ${s.booker ? `<br><small>Booked by: ${s.booker.firstName} ${s.booker.lastName}</small>` : ''}
+      `;
+
+      div.appendChild(el);
+    });
+  } catch (e) {
+    div.innerHTML = `<p style="padding:0 20px;color:#e2291e">Error: ${e.message}</p>`;
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

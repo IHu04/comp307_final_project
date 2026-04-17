@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <title>Homepage</title>
+</head>
+<style>
+    body {
+        margin: 0;
+    }
+
+    .container {
+        background-color: #d9d9d9;
+    }
+
+    .topnav {
+        z-index: 9999;
+        top:0;
+        position: sticky;
+        width: auto;
+        height: 80px;
+        display: flex;
+        background-color: #e2291e;
+        padding: 0 20px;
+    }
+    .topnav img {
+        width: 35px;
+        height: auto;
+    }
+
+    .nav-left {
+        display: flex;
+        margin-left: 5px;
+        align-items: center;
+    }
+
+    .nav-left p {
+        margin-left: 15px;
+        font-size: 28px;
+        color: white;
+    }
+
+    .nav-left h2 {
+        font-size: 35px;
+        color: white;
+    }
+
+    .nav-center {
+        display: flex;
+        align-items: center;
+        margin-left: 30px;
+    }
+
+    .nav-center a {
+        text-decoration: none;
+        font-size: 18px;
+        color: white;
+        padding: 14px 12px;
+    }
+
+    .nav-center a:hover {
+        text-decoration: underline;
+    }
+
+    .nav-right {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+    }
+
+    .nav-right a {
+        text-decoration: none;
+        font-size: 16px;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-left: 4px;
+    }
+
+    .nav-right a:hover {
+        background-color: rgba(255,255,255,0.15);
+    }
+
+
+
+    .landing {
+        width: auto;
+        display: flex;
+
+    }
+
+    .intro img {
+        width: 100vw;
+        height: 800px;
+        object-fit: cover;
+        display: block;
+
+    }
+
+    .text {
+        position: absolute;
+        top: 15%;
+        left: 16px;
+        color: white;
+        margin-left: 80px;
+    }
+
+    .intro h2 {
+        font-size: 50px;
+        margin-bottom: -30px;
+       
+    }
+
+    .intro p {
+        font-size: 20px;
+        width: 50%;
+    }
+
+    .intro h3 {
+        font-size: 40px;
+        margin-bottom: -15px;
+    }
+
+    .button {
+        font-size: 20px;
+        cursor: pointer;
+        background-color: #e2291e;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: white;
+    }
+
+    .part1 {
+        
+        align-content: center;
+        margin-left: 15px;
+    
+    }
+
+    .part1 h2 {
+        
+        text-align: center;
+    }
+
+    .about-row {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+
+    .okay img{
+        width: 100%;
+    }
+
+    .lol {
+        height:15px;
+        background-color: #e2291e;
+    }
+
+    .part2{
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        width: 100%;
+
+    }
+
+    .card {
+
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        transition: 0.3s;
+        background-color: lightgrey;
+        
+    }
+    .card img {
+        width:250px;
+        height:180px;
+    }
+
+
+    .card:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    }
+
+    .card.clickable {
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+
+    .container1 {
+    padding: 2px 16px;
+    }
+
+    .button:hover {
+        background-color: #b22d0a;
+    }
+
+  
+
+
+
+
+
+   
+
+</style>
+<body>
+    <div class="container">
+
+        <div class="topnav">
+            <img src="images/logo.svg" />
+            
+            <div class="nav-left">
+                <h2>McGill</h2>
+                <p>Bookings</p>
+            </div>
+
+            <div class="nav-center">
+                <a href="#Home">Home</a>
+                <a href="#Services">Services</a>
+                <a href="#about">About</a>
+                <a href="#Contact Us">Contact Us</a>
+            </div>
+
+            <div class="nav-right">
+                <span id="auth-nav"></span>
+            </div>
+        </div>
+
+
+        <div class="landing">
+
+            <div class="intro">
+                <img src="images/mcgill5.png" />
+           
+                <div class="text"><h2>Welcome to McGill Bookings</h2>
+                    <h3>Easily Schedule Meetings</h3>                
+                    <p>Schedule meetings with professors, 
+                    teaching assistants, and fellow students with our easy-to-use booking platform. </p>
+
+                  
+                        <span id="hero-buttons">
+                            <a href="register.html" class="button">Register</a>
+                            &nbsp;
+                            <a href="login.html" class="button">Login</a>
+                        </span>
+             
+                </div>
+
+            </div>   
+        </div>
+
+        <div class="lol"></div>
+
+
+        <div class="bottom-part">
+           
+            <div class="about-row">
+
+                <div class="part2">
+                    <a href="book.html" class="card clickable">
+                        <img src="images/mcgill.png" />
+                        <div class="container1">
+                            <h4><b>Request a meeting</b></h4>
+                        </div>
+                    </a>
+
+                    <a href="book.html" class="card clickable">
+                        <img src="images/card1.png" />
+                        <div class="container1">
+                            <h4><b>Schedule a group meeting</b></h4>
+                        </div>
+                    </a>
+
+                    <a href="book.html" class="card clickable">
+                        <img src="images/card2.png" />
+                        <div class="container1">
+                            <h4><b>Reserve office hours slots</b></h4>
+                        </div>
+                    </a>
+
+                    <a href="teamup.html" class="card clickable">
+                        <img src="images/card3.png" />
+                        <div class="container1">
+                            <h4><b>Find teammates for a project</b></h4>
+                        </div>
+                    </a>
+
+                </div>
+    
+            </div>
+
+            <div class="part1">
+                <h2>About Us</h2>
+                <p>"At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat."</p>
+            </div>
+        </div>
+
+
+        <div class="okay">
+            <img src="images/header.png" />
+
+        </div>
+
+    </div>
+
+
+
+
+
+<script src="shared.js"></script>
+<script>
+async function initNav() {
+  const user = await API.getUser(); // getUser() — no redirect, just check
+
+  const authNav    = document.getElementById('auth-nav');
+  const heroButtons = document.getElementById('hero-buttons');
+
+  if (user) {
+    // ── Logged in ─────────────────────────────────────────────
+    const ownerLinks = user.isOwner
+      ? `<a href="slots.html">Dashboard</a>`
+      : '';
+
+    authNav.innerHTML = `
+      <a href="book.html">Book</a>
+      <a href="view.html">My Bookings</a>
+      <a href="teamup.html">Team Up</a>
+      ${ownerLinks}
+      <a href="#" onclick="API.logout();return false;">Logout</a>
+    `;
+
+    heroButtons.innerHTML = `
+      <a href="book.html" class="button">Book a Slot</a>
+      &nbsp;
+      <a href="view.html" class="button">My Bookings</a>
+    `;
+
+  } else {
+    // ── Logged out ─────────────────────────────────────────────
+    authNav.innerHTML = `
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+    `;
+    // hero buttons stay as-is (Register / Login already in HTML)
+  }
+}
+
+initNav();
+</script>
+</body>
+</html>

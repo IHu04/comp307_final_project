@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Slot</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #d9d9d9;
+}
+
+.topnav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: #e2291e;
+    padding: 0 20px;
+    color: white;
+}
+
+.nav-right {
+    margin-left: auto;
+}
+
+.nav-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 16px;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #555;
+}
+
+.breadcrumb span {
+    color: #e2291e;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.page-title {
+    padding: 0 20px 10px;
+    margin: 0;
+}
+
+/* Grid of cards */
+#results {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Owner card */
+.owner-card {
+    background: white;
+    width: 240px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.owner-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+}
+
+.owner-card .avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #e2291e;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.owner-card h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+}
+
+.owner-card .email {
+    font-size: 12px;
+    color: gray;
+    margin-bottom: 10px;
+}
+
+.owner-card .slot-count {
+    font-size: 13px;
+    color: green;
+    font-weight: bold;
+}
+
+/* Slot card */
+.slot-card {
+    background: white;
+    width: 240px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+button {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px;
+    background: #e2291e;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #b22d0a;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topnav">
+    <div><b>McGill Bookings</b></div>
+    <div class="nav-right">
+        <a href="book.html">Book</a>
+        <a href="view.html">My Bookings</a>
+        <a href="teamup.html">Team Up</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<div class="breadcrumb" id="breadcrumb"></div>
+<h2 class="page-title" id="page-title">Browse Professors &amp; TAs</h2>
+<div id="results"></div>
+
+<script src="shared.js"></script>
+<script>
+
+let currentOwner = null;
+
+async function init() {
+  const user = await API.requireAuth();
+  if (!user) return;
+  showOwners();
+}
+
+/* ── STEP 1: List all owners ─────────────────────────────── */
+async function showOwners() {
+  currentOwner = null;
+  document.getElementById('page-title').textContent = 'Browse Professors & TAs';
+  document.getElementById('breadcrumb').innerHTML = '';
+
+  const results = document.getElementById('results');
+  results.innerHTML = '<p>Loading...</p>';
+
+  try {
+    const { owners } = await API.get('/owners');
+
+    results.innerHTML = '';
+
+    if (!owners.length) {
+      results.innerHTML = '<p>No professors or TAs have active slots right now.</p>';
+      return;
+    }
+
+    owners.forEach((owner) => {
+      const initials = (owner.firstName[0] + owner.lastName[0]).toUpperCase();
+
+      const card = document.createElement('div');
+      card.className = 'owner-card';
+      card.innerHTML = `
+        <div class="avatar">${initials}</div>
+        <h3>${owner.firstName} ${owner.lastName}</h3>
+        <div class="email">${owner.email}</div>
+        <div class="slot-count">${owner.activeSlotCount} slot${owner.activeSlotCount !== 1 ? 's' : ''} available</div>
+      `;
+      card.onclick = () => showSlots(owner);
+      results.appendChild(card);
+    });
+
+  } catch (e) {
+    results.innerHTML = `<p style="color:#e2291e">Error: ${e.message}</p>`;
+  }
+}
+
+/* ── STEP 2: Slots for a chosen owner ────────────────────── */
+async function showSlots(owner) {
+  currentOwner = owner;
+
+  document.getElementById('page-title').textContent =
+    `Available slots — ${owner.firstName} ${owner.lastName}`;
+
+  document.getElementById('breadcrumb').innerHTML =
+    `<span onclick="showOwners()">← Back to list</span>`;
+
+  const results = document.getElementById('results');
+  results.innerHTML = '<p>Loading slots...</p>';
+
+  try {
+    const { slots } = await API.get(`/owners/${owner.id}/slots`);
+
+    results.innerHTML = '';
+
+    if (!slots.length) {
+      results.innerHTML = '<p>No available slots for this person right now.</p>';
+      return;
+    }
+
+    slots.forEach((slot) => {
+      const card = document.createElement('div');
+      card.className = 'slot-card';
+      card.innerHTML = `
+        <b>${slot.date}</b><br>
+        🕐 ${slot.startTime.slice(0,5)} – ${slot.endTime.slice(0,5)}<br><br>
+        <span style="color:gray;font-size:13px">${owner.firstName} ${owner.lastName}</span><br>
+        <span style="color:green;font-size:13px">Available 🟢</span>
+      `;
+
+      const btn = document.createElement('button');
+      btn.textContent = 'Book this slot';
+      btn.onclick = () => {
+        sessionStorage.setItem('pendingBooking', JSON.stringify({
+          slotId: slot.id,
+          ownerName: `${owner.firstName} ${owner.lastName}`,
+          ownerEmail: owner.email,
+          date: slot.date,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        }));
+        window.location.href = 'confirm.html';
+      };
+
+      card.appendChild(btn);
+      results.appendChild(card);
+    });
+
+  } catch (e) {
+    results.innerHTML = `<p style="color:#e2291e">Error: ${e.message}</p>`;
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

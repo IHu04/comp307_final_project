@@ -1,0 +1,97 @@
+import { readFile, readdir } from 'fs/promises';
+import path from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { pool } from '../config/db.js';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const folder = path.join(here, 'migrations');
+
+// One migration file can have several statements; mysql2 runs one query() at a time.
+function sqlStatements(fileContents) {
+  const withoutLineComments = fileContents.replace(/^\s*--.*$/gm, '');
+  return withoutLineComments
+    .split(';')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+async function setupTrackingTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      filename VARCHAR(255) NOT NULL UNIQUE,
+      applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+}
+
+async function alreadyRan() {
+  const [rows] = await pool.query(
+    'SELECT filename FROM schema_migrations ORDER BY filename'
+  );
+  const names = new Set();
+  for (const row of rows) {
+    names.add(row.filename);
+  }
+  return names;
+}
+
+/**
+ * Runs any pending .sql files in src/db/migrations/ (sorted by filename).
+ * Does not close the pool.
+ * @returns {Promise<number>} number of migration files applied this run
+ */
+export async function runMigration() {
+  await setupTrackingTable();
+  const done = await alreadyRan();
+
+  const files = (await readdir(folder))
+    .filter((name) => name.endsWith('.sql'))
+    .sort();
+
+  let ran = 0;
+  for (const name of files) {
+    if (done.has(name)) {
+      continue;
+    }
+    const fileText = await readFile(path.join(folder, name), 'utf8');
+    const statements = sqlStatements(fileText);
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      for (const stmt of statements) {
+        await connection.query(stmt);
+      }
+      await connection.query('INSERT INTO schema_migrations (filename) VALUES (?)', [name]);
+      await connection.commit();
+      console.log('Ran migration: ' + name);
+      ran += 1;
+    } catch (e) {
+      await connection.rollback();
+      console.error('Migration failed: ' + name, e);
+      throw e;
+    } finally {
+      connection.release();
+    }
+  }
+
+  if (ran === 0) {
+    console.log('Nothing new to migrate.');
+  }
+
+  return ran;
+}
+
+const isMain =
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+
+if (isMain) {
+  runMigration()
+    .then(() => pool.end())
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error(e);
+      pool.end().finally(() => process.exit(1));
+    });
+}

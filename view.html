@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Bookings</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #d9d9d9;
+}
+
+/* NAVBAR */
+.topnav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: #e2291e;
+    padding: 0 20px;
+    color: white;
+}
+
+.nav-left h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.nav-right {
+    margin-left: auto;
+}
+
+.nav-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.nav-right a:hover {
+    text-decoration: underline;
+}
+
+/* PAGE TITLE */
+h2.page-title {
+    padding: 20px;
+    margin: 0;
+}
+
+/* LIST LAYOUT */
+#list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* CARD SYSTEM (same as all pages) */
+.card {
+    background: white;
+    width: 260px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+/* BUTTON */
+button {
+    margin-top: 15px;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    background: #e2291e;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #b22d0a;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="topnav">
+    <div class="nav-left">
+        <h2>McGill Bookings</h2>
+    </div>
+
+    <div class="nav-right">
+        <a href="book.html">Book</a>
+        <a href="view.html">My Bookings</a>
+        <a href="teamup.html">Team Up</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<!-- TITLE -->
+<h2 class="page-title">My Bookings</h2>
+
+<!-- CONTENT -->
+<div id="list"></div>
+
+<script src="shared.js"></script>
+
+<script>
+async function init() {
+  const user = await API.requireAuth();
+  if (!user) return;
+  render();
+}
+
+async function render() {
+  const div = document.getElementById('list');
+  div.innerHTML = '<p style="padding:20px">Loading...</p>';
+
+  try {
+    const data = await API.get('/dashboard');
+    const appointments = data.appointments || [];
+
+    div.innerHTML = '';
+
+    if (!appointments.length) {
+      div.innerHTML = '<p style="padding:20px">No bookings yet. <a href="book.html">Browse available slots →</a></p>';
+      return;
+    }
+
+    appointments.forEach((appt) => {
+      const el = document.createElement('div');
+      el.className = 'card';
+
+      el.innerHTML = `
+        <strong>${appt.date}</strong><br>
+        🕐 ${appt.startTime.slice(0,5)} – ${appt.endTime.slice(0,5)}<br><br>
+        With: ${appt.otherParty ? appt.otherParty.name : 'Unknown'}
+        ${appt.mailtoUri ? `<br><a href="${appt.mailtoUri}" style="font-size:13px;color:#e2291e">✉ Email them</a>` : ''}
+      `;
+
+      if (appt.canCancel) {
+        const btn = document.createElement('button');
+        btn.textContent = 'Cancel Booking';
+        btn.onclick = async () => {
+          if (!confirm('Cancel this booking?')) return;
+          try {
+            await API.del(`/slots/${appt.slotId}/book`);
+            render();
+          } catch (e) {
+            alert('Could not cancel: ' + e.message);
+          }
+        };
+        el.appendChild(btn);
+      }
+
+      div.appendChild(el);
+    });
+
+  } catch (e) {
+    div.innerHTML = `<p style="padding:20px;color:#e2291e">Error: ${e.message}</p>`;
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register to Booking</title>
+</head>
+<style>
+
+body {
+    margin: 0;
+    background-color: lightgray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+
+.card {
+    background-color: white;
+    width: 600px;
+    padding: 50px;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+
+.toggle {
+    display: flex;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+}
+
+.card input[type="radio"]{
+    display: none;
+}
+
+
+.toggle label {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    background-color: lightgray;
+}
+
+#student:checked ~ .toggle label[for="student"] {
+    background-color: #e2291e;
+    color: white;
+}
+
+#staff:checked ~ .toggle label[for="staff"] {
+    background-color: #e2291e;
+    color: white;
+}
+
+.student-role, .staff-role {
+    display: none;
+}
+
+#student:checked ~ .student-role {
+    display: block;
+}
+
+#staff:checked ~ .staff-role {
+    display: block;
+}
+
+input {
+    width: 577px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid lightgray;
+}
+
+.student-role p, .staff-role p {
+    margin-bottom: 5px;
+}
+
+.info p {
+    color:darkgray;
+    font-size: 14px;
+    margin-top: -3px;
+}
+
+.signup {
+    display: flex;
+    gap: 10px;
+}
+
+.button {
+    text-decoration: none;
+    color: white;
+    background-color: #e2291e;
+    width: 350px;
+    flex: 1;
+    padding:10px;
+    display: inline-block;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+
+
+}
+
+.button:hover {
+    background-color: #b22d0a;
+}
+
+button.button {
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+}
+ 
+</style>
+
+
+
+<body>
+
+<div class="card">
+    <h2>Register to McGill's Booking Platform</h2>
+    <input type="radio" name="role" id="student" checked>
+    <input type="radio" name="role" id="staff">
+
+    
+    <div class="toggle">
+        <label for="student">Student</label>
+        <label for="staff">Staff</label>
+    </div>
+
+
+    <div class="student-role">
+        <p>First Name</p>
+        <input type="text" id="stu-first" placeholder="First name">
+        <p>Last Name</p>
+        <input type="text" id="stu-last" placeholder="Last name">
+        <p>McGill Student Email</p>
+        <input type="email" id="email-stu" placeholder="username@mail.mcgill.ca">
+        <p>Password</p>
+        <input type="password" id="pass-stu1" placeholder="password">
+        <div class="info"><p>Use 8 or more characters with a mix of letters, numbers, &amp; symbols.</p></div>
+        <p>Repeat Password</p>
+        <input type="password" id="pass-stu2" placeholder="password">
+    </div>
+
+    <div class="staff-role">
+        <p>First Name</p>
+        <input type="text" id="sta-first" placeholder="First name">
+        <p>Last Name</p>
+        <input type="text" id="sta-last" placeholder="Last name">
+        <p>McGill Staff Email</p>
+        <input type="email" id="email-sta" placeholder="username@mcgill.ca">
+        <p>Password</p>
+        <input type="password" id="pass-sta1" placeholder="password">
+        <div class="info"><p>Use 8 or more characters with a mix of letters, numbers, &amp; symbols.</p></div>
+        <p>Repeat Password</p>
+        <input type="password" id="pass-sta2" placeholder="password">
+    </div>
+
+    <p id="reg-error" style="color:#e2291e;font-size:14px;display:none;margin-top:10px;"></p>
+
+    <div class="signup">
+        <a href="homepage.html" class="button">Back</a>
+        <button type="button" id="btn-register" class="button">Register</button>
+    </div>
+
+</div>
+
+<script>
+  document.getElementById('btn-register').addEventListener('click', async () => {
+    const errEl = document.getElementById('reg-error');
+    errEl.style.display = 'none';
+
+    // Determine active role
+    const isStaff = document.getElementById('staff').checked;
+    const firstName = document.getElementById(isStaff ? 'sta-first' : 'stu-first').value.trim();
+    const lastName  = document.getElementById(isStaff ? 'sta-last'  : 'stu-last').value.trim();
+    const email     = document.getElementById(isStaff ? 'email-sta' : 'email-stu').value.trim();
+    const password  = document.getElementById(isStaff ? 'pass-sta1' : 'pass-stu1').value;
+    const confirm   = document.getElementById(isStaff ? 'pass-sta2' : 'pass-stu2').value;
+
+    if (!firstName || !lastName || !email || !password) {
+      errEl.textContent = 'All fields are required.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (password !== confirm) {
+      errEl.textContent = 'Passwords do not match.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (password.length < 8) {
+      errEl.textContent = 'Password must be at least 8 characters.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ firstName, lastName, email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        window.location.href = 'homepage.html';
+      } else {
+        // Show the first specific validation error if available
+        const detail = data.details?.[0]?.msg;
+        errEl.textContent = detail || data.message || 'Registration failed. Please try again.';
+        errEl.style.display = 'block';
+      }
+    } catch {
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.style.display = 'block';
+    }
+  });
+</script>
+</body>
+</html>

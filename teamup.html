@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeamUp McGill</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #d9d9d9;
+}
+
+/* NAVBAR */
+.topnav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: #e2291e;
+    color: white;
+    padding: 0 20px;
+}
+
+.topnav h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.topnav-right {
+    margin-left: auto;
+}
+
+.topnav-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.topnav-right a:hover {
+    text-decoration: underline;
+}
+
+/* LAYOUT */
+.container {
+    display: flex;
+}
+
+/* FORM SIDEBAR */
+.form {
+    width: 340px;
+    background: white;
+    padding: 20px;
+    height: calc(100vh - 80px);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    overflow-y: auto;
+}
+
+.form h3 {
+    margin-top: 0;
+}
+
+/* INPUTS */
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* BUTTON SYSTEM */
+button {
+    padding: 10px;
+    background: #e2291e;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: 0.2s;
+    width: 100%;
+}
+
+button:hover {
+    background: #b22d0a;
+}
+
+/* FEED */
+.feed {
+    flex: 1;
+    padding: 20px;
+}
+
+/* CARD */
+.card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* TEXT */
+.small {
+    font-size: 13px;
+    color: gray;
+}
+
+/* BADGES */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+/* COURSE BADGES */
+.comp { background: #cce5ff; }
+.math { background: #d4edda; }
+.econ { background: #fff3cd; }
+
+/* INTENT BADGES */
+.intent-project { background: #d1ecf1; }
+.intent-study { background: #e2e3ff; }
+.intent-friend { background: #ffe0e6; }
+
+/* FULL LABEL */
+.full {
+    color: #e2291e;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="topnav">
+    <h2>TeamUp McGill</h2>
+
+    <div class="topnav-right">
+        <a href="book.html">Book</a>
+        <a href="view.html">My Bookings</a>
+        <a href="teamup.html">Team Up</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- FORM -->
+<div class="form">
+    <h3>Create Team Request</h3>
+
+    <input id="course" placeholder="Course (e.g. COMP 202)">
+    <input id="teamName" placeholder="Team name">
+
+    <textarea id="desc" placeholder="Describe your team..."></textarea>
+
+    <input id="looking" placeholder="Looking for (e.g. frontend dev)">
+    <input id="max" type="number" placeholder="Max team size">
+
+    <select id="intent">
+        <option value="project">🤝 Project Teammates</option>
+        <option value="study">📚 Study Partner</option>
+        <option value="friend">😊 Friend / Social</option>
+    </select>
+
+    <button onclick="createRequest()">Post</button>
+
+    <hr>
+
+    <h4>Filters</h4>
+
+    <select id="filterCourse" onchange="render()">
+        <option value="ALL">All Courses</option>
+        <option value="COMP">COMP</option>
+        <option value="MATH">MATH</option>
+        <option value="ECON">ECON</option>
+    </select>
+
+    <input id="search" placeholder="Search..." oninput="render()">
+</div>
+
+<!-- FEED -->
+<div class="feed">
+    <h3>Active Team Requests</h3>
+    <div id="list"></div>
+</div>
+
+</div>
+
+<script src="shared.js"></script>
+<script>
+
+let currentUser = null;
+
+async function init() {
+  currentUser = await API.requireAuth();
+  if (!currentUser) return;
+  render();
+}
+
+async function createRequest() {
+  const courseCode = document.getElementById('course').value.trim();
+  const teamName   = document.getElementById('teamName').value.trim();
+  const desc       = document.getElementById('desc').value.trim();
+  const maxMembers = parseInt(document.getElementById('max').value || '4', 10);
+
+  if (!courseCode || !teamName) return alert('Course and team name are required.');
+
+  try {
+    await API.post('/team-requests', { courseCode, teamName, description: desc, maxMembers });
+    // Clear form
+    ['course','teamName','desc','max'].forEach(id => document.getElementById(id).value = '');
+    render();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+async function render() {
+  const list = document.getElementById('list');
+  list.innerHTML = '<p>Loading...</p>';
+
+  try {
+    const courseFilter = document.getElementById('filterCourse').value;
+    const search = document.getElementById('search').value.toLowerCase();
+
+    const query = courseFilter !== 'ALL' ? `?courseCode=${courseFilter}` : '';
+    const { teamRequests } = await API.get('/team-requests' + query);
+
+    list.innerHTML = '';
+
+    let filtered = teamRequests;
+    if (search) {
+      filtered = filtered.filter(r =>
+        r.teamName.toLowerCase().includes(search) ||
+        (r.description || '').toLowerCase().includes(search)
+      );
+    }
+
+    if (!filtered.length) {
+      list.innerHTML = '<p>No team requests found.</p>';
+      return;
+    }
+
+    filtered.forEach((req) => {
+      const courseTag = req.courseCode.split(' ')[0];
+      const isFull    = req.maxMembers && req.memberCount >= req.maxMembers;
+      const isCreator = req.creatorId === currentUser.id;
+      const isMember  = req.isMember;
+
+      const div = document.createElement('div');
+      div.className = 'card';
+
+      div.innerHTML = `
+        <span class="badge ${courseTag.toLowerCase()}">${courseTag}</span>
+        ${isMember && !isCreator ? '<span class="badge" style="background:#d4edda;color:#155724">✓ Joined</span>' : ''}
+        ${isCreator ? '<span class="badge" style="background:#fff3cd;color:#856404">Your Team</span>' : ''}
+
+        <h3>${req.teamName}</h3>
+        <p class="small"><b>Course:</b> ${req.courseCode}</p>
+        <p class="small"><b>Created by:</b> ${req.creator.firstName} ${req.creator.lastName}</p>
+        ${req.description ? `<p>${req.description}</p>` : ''}
+        <p><b>Members:</b> ${req.memberCount}/${req.maxMembers || '∞'}</p>
+        ${isFull ? '<p class="full">Team Full</p>' : ''}
+
+        <div id="members-${req.id}" style="margin:8px 0"></div>
+
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">
+          ${!isCreator && !isMember && !isFull
+            ? `<button onclick="join(${req.id})">Join</button>` : ''}
+          ${!isCreator && isMember
+            ? `<button onclick="leave(${req.id})" style="background:#888">Leave</button>` : ''}
+          ${isCreator
+            ? `<button onclick="toggleMembers(${req.id})" style="background:#555">👥 Members</button>` : ''}
+          ${isCreator
+            ? `<button onclick="remove(${req.id})" style="background:#888">Delete</button>` : ''}
+          <button onclick="emailCreator('${req.creator.email}','${req.creator.firstName}','${req.creator.lastName}')">✉ Email</button>
+        </div>
+      `;
+
+      list.appendChild(div);
+    });
+
+  } catch (e) {
+    list.innerHTML = `<p style="color:#e2291e">Error: ${e.message}</p>`;
+  }
+}
+
+async function join(id) {
+  try {
+    await API.post(`/team-requests/${id}/join`);
+    render();
+  } catch (e) {
+    alert('Could not join: ' + e.message);
+  }
+}
+
+async function leave(id) {
+  if (!confirm('Leave this team?')) return;
+  try {
+    await API.del(`/team-requests/${id}/leave`);
+    render();
+  } catch (e) {
+    alert('Could not leave: ' + e.message);
+  }
+}
+
+async function remove(id) {
+  if (!confirm('Delete this team request?')) return;
+  try {
+    await API.del(`/team-requests/${id}`);
+    render();
+  } catch (e) {
+    alert('Could not delete: ' + e.message);
+  }
+}
+
+function emailCreator(email, firstName, lastName) {
+  window.location.href = `mailto:${email}?subject=McGill%20TeamUp%20—%20Interested%20in%20joining%20your%20team&body=Hi%20${encodeURIComponent(firstName)}%2C%0A%0AI%20saw%20your%20team%20request%20on%20McGill%20Bookings%20and%20I%27m%20interested%20in%20joining!`;
+}
+
+// Creator: show/hide member list with remove buttons
+async function toggleMembers(id) {
+  const container = document.getElementById(`members-${id}`);
+
+  // Toggle off if already open
+  if (container.innerHTML.trim() !== '') {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = '<p style="font-size:13px;color:gray">Loading members...</p>';
+
+  try {
+    const { teamRequest } = await API.get(`/team-requests/${id}`);
+    const members = teamRequest.members;
+
+    if (!members.length) {
+      container.innerHTML = '<p style="font-size:13px;color:gray">No members yet.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <p style="font-size:13px;font-weight:bold;margin:8px 0 4px">Team Members:</p>
+      ${members.map(m => {
+        const isCreatorRow = m.userId === currentUser.id;
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;
+                      font-size:13px;padding:4px 0;border-bottom:1px solid #eee">
+            <span>${m.firstName} ${m.lastName}
+              ${isCreatorRow ? '<span style="color:#856404"> (you)</span>' : ''}
+            </span>
+            ${!isCreatorRow
+              ? `<button onclick="removeMember(${id},${m.userId})"
+                         style="padding:3px 8px;font-size:12px;background:#e2291e;width:auto;margin:0">
+                   Remove
+                 </button>`
+              : ''}
+          </div>`;
+      }).join('')}
+    `;
+  } catch (e) {
+    container.innerHTML = `<p style="color:#e2291e;font-size:13px">Error: ${e.message}</p>`;
+  }
+}
+
+async function removeMember(teamId, userId) {
+  if (!confirm('Remove this member from the team?')) return;
+  try {
+    await API.del(`/team-requests/${teamId}/members/${userId}`);
+    render();
+  } catch (e) {
+    alert('Could not remove member: ' + e.message);
+  }
+}
+
+init();
+
+</script>
+
+</body>
+</html>
