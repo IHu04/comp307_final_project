@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book an Appointment</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #d9d9d9;
+}
+
+/* ── NAVBAR ───────────────────────────────────────────────── */
+.topnav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: #e2291e;
+    padding: 0 20px;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+}
+
+.topnav h2 {
+    margin: 0;
+    font-size: 28px;
+    color: white;
+}
+
+.nav-right {
+    margin-left: auto;
+}
+
+.nav-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 16px;
+}
+
+.nav-right a:hover { text-decoration: underline; }
+
+/* ── PAGE WRAPPER ─────────────────────────────────────────── */
+.page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - 80px);
+    padding: 40px 20px;
+}
+
+/* ── OUTER CARD ───────────────────────────────────────────── */
+.booking-card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 820px;
+    overflow: hidden;
+}
+
+/* ── OWNER HEADER ─────────────────────────────────────────── */
+.owner-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 28px 32px;
+    border-bottom: 1px solid #ececec;
+    background: #fafafa;
+}
+
+.owner-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #e2291e;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.owner-details { flex: 1; }
+
+.owner-details h2 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    color: #1a1a1a;
+}
+
+.owner-details .appt-type {
+    font-size: 15px;
+    color: #555;
+    margin: 0 0 8px;
+}
+
+.owner-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.owner-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #777;
+}
+
+.back-link {
+    font-size: 13px;
+    color: #e2291e;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+.back-link:hover { text-decoration: underline; }
+
+/* ── TWO-PANEL BODY ───────────────────────────────────────── */
+.booking-body {
+    display: flex;
+    min-height: 460px;
+}
+
+/* ── LEFT: calendar ───────────────────────────────────────── */
+.panel-calendar {
+    flex: 1;
+    padding: 32px 28px;
+    border-right: 1px solid #ececec;
+    min-width: 0;
+}
+
+.panel-calendar > h3 {
+    margin: 0 0 20px;
+    font-size: 16px;
+    color: #333;
+}
+
+.cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.cal-month-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.cal-nav-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: white;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    transition: background 0.15s;
+}
+
+.cal-nav-btn:hover:not(:disabled) { background: #f5f5f5; }
+
+.cal-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+/* 7-col grids for weekday headers and date cells */
+.calendar-weekdays,
+.calendar-dates {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-weekdays { margin-bottom: 4px; }
+
+.calendar-weekdays div {
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: #999;
+    padding: 4px 0 8px;
+}
+
+.calendar-dates div {
+    text-align: center;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    color: #ccc;
+    cursor: default;
+    user-select: none;
+}
+
+.calendar-dates div.available {
+    color: #222;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.calendar-dates div.available:hover {
+    background: #ffeaea;
+    color: #e2291e;
+}
+
+.calendar-dates div.selected {
+    background: #e2291e;
+    color: white;
+}
+
+.calendar-dates div.today:not(.selected) {
+    border: 1.5px solid #e2291e;
+    color: #e2291e;
+}
+
+.calendar-dates div.empty { visibility: hidden; }
+
+.tz-note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── RIGHT: time slots ────────────────────────────────────── */
+.panel-times {
+    width: 230px;
+    flex-shrink: 0;
+    padding: 32px 20px;
+    overflow-y: auto;
+}
+
+.panel-times h4 {
+    margin: 0 0 2px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.times-subhead {
+    font-size: 12px;
+    color: #aaa;
+    margin: 0 0 18px;
+}
+
+.slot-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.slot-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.slot-time-btn {
+    flex: 1;
+    padding: 11px 8px;
+    border: 1.5px solid #e2291e;
+    border-radius: 10px;
+    background: white;
+    color: #e2291e;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+}
+
+.slot-time-btn:hover,
+.slot-time-btn.selecting {
+    background: #e2291e;
+    color: white;
+}
+
+.slot-confirm-btn {
+    padding: 11px 10px;
+    border: none;
+    border-radius: 10px;
+    background: #1a1a1a;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    display: none;
+    transition: 0.15s;
+}
+
+.slot-confirm-btn:hover { background: #333; }
+
+.slot-confirm-btn.visible { display: block; }
+
+.placeholder {
+    color: #bbb;
+    font-size: 14px;
+    text-align: center;
+    padding: 40px 0;
+    line-height: 1.7;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .booking-body { flex-direction: column; }
+    .panel-calendar { border-right: none; border-bottom: 1px solid #ececec; }
+    .panel-times { width: 100%; }
+    .owner-header { flex-wrap: wrap; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="topnav">
+    <h2>McGill Bookings</h2>
+    <div class="nav-right">
+        <a href="book.html">Book</a>
+        <a href="view.html">My Bookings</a>
+        <a href="teamup.html">Team Up</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<div class="page">
+<div class="booking-card">
+
+    <!-- OWNER HEADER — filled by JS from URL params -->
+    <div class="owner-header">
+        <div class="owner-avatar" id="owner-avatar">?</div>
+        <div class="owner-details">
+            <h2 id="owner-name">Loading...</h2>
+            <p class="appt-type">Office Hours / Appointment</p>
+            <div class="owner-meta">
+                <span>
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="#999" stroke-width="1.4"/>
+                        <path d="M8 4.5V8.5L10.5 10" stroke="#999" stroke-width="1.4" stroke-linecap="round"/>
+                    </svg>
+                    30 min
+                </span>
+                <span>
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="#999" stroke-width="1.2"/>
+                        <ellipse cx="8" cy="8" rx="3" ry="7" stroke="#999" stroke-width="1.2"/>
+                        <line x1="1" y1="8" x2="15" y2="8" stroke="#999" stroke-width="1.2"/>
+                    </svg>
+                    Eastern time
+                </span>
+            </div>
+        </div>
+        <a href="book.html" class="back-link">&#8592; Back</a>
+    </div>
+
+    <!-- TWO-PANEL BODY -->
+    <div class="booking-body">
+
+        <!-- LEFT: calendar -->
+        <div class="panel-calendar">
+            <h3>Select a Date &amp; Time</h3>
+
+            <div class="cal-header">
+                <button class="cal-nav-btn" id="btn-prev" onclick="changeMonth(-1)">&#8249;</button>
+                <span class="cal-month-label" id="cal-month-label"></span>
+                <button class="cal-nav-btn" id="btn-next" onclick="changeMonth(1)">&#8250;</button>
+            </div>
+
+            <div class="calendar-weekdays" id="cal-weekdays"></div>
+            <div class="calendar-dates"   id="cal-dates">
+                <div style="grid-column:span 7;text-align:center;color:#ccc;padding:20px;font-size:13px">
+                    Loading...
+                </div>
+            </div>
+
+            <div class="tz-note">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="#bbb" stroke-width="1.2"/>
+                    <ellipse cx="8" cy="8" rx="3" ry="7" stroke="#bbb" stroke-width="1.2"/>
+                    <line x1="1" y1="8" x2="15" y2="8" stroke="#bbb" stroke-width="1.2"/>
+                </svg>
+                Eastern time — Canada
+            </div>
+        </div>
+
+        <!-- RIGHT: time slots -->
+        <div class="panel-times">
+            <div id="time-placeholder" class="placeholder">
+                Pick a date to see<br>available times
+            </div>
+            <div id="time-container" style="display:none">
+                <h4 id="time-date-label"></h4>
+                <p class="times-subhead" id="time-date-sub"></p>
+                <div class="slot-list" id="slot-list"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<script src="shared.js"></script>
+<script src="calendar-export.js"></script>
+<script>
+
+// ── state ───────────────────────────────────────────────────
+let allSlots     = [];
+let selectedDate = null;  // 'YYYY-MM-DD'
+let calYear, calMonth;
+
+// owner info read from URL params
+let ownerInfo = { id: null, firstName: '', lastName: '', email: '' };
+
+// ── init ────────────────────────────────────────────────────
+async function init() {
+    const user = await API.requireAuth();
+    if (!user) return;
+
+    // expected URL: student-book-appt.html?ownerId=3&firstName=Pat&lastName=Professor&email=prof@mcgill.ca
+    const params = new URLSearchParams(window.location.search);
+    ownerInfo.id        = params.get('ownerId');
+    ownerInfo.firstName = params.get('firstName') || '';
+    ownerInfo.lastName  = params.get('lastName')  || '';
+    ownerInfo.email     = params.get('email')     || '';
+
+    if (!ownerInfo.id) {
+        // no owner specified — send back to browse page
+        window.location.href = 'book.html';
+        return;
+    }
+
+    // fill owner header
+    const initials = ((ownerInfo.firstName[0] || '') + (ownerInfo.lastName[0] || '')).toUpperCase() || '?';
+    document.getElementById('owner-avatar').textContent = initials;
+    document.getElementById('owner-name').textContent =
+        `${ownerInfo.firstName} ${ownerInfo.lastName}`.trim() || 'Professor';
+
+    // init calendar
+    const now = new Date();
+    calYear  = now.getFullYear();
+    calMonth = now.getMonth();
+
+    renderWeekdays();
+
+    // fetch slots for this owner
+    try {
+        const { slots } = await API.get(`/owners/${ownerInfo.id}/slots`);
+        allSlots = slots;
+    } catch (e) {
+        allSlots = [];
+    }
+
+    renderCalendar();
+}
+
+// ── render weekday header row once ──────────────────────────
+function renderWeekdays() {
+    const container = document.getElementById('cal-weekdays');
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(day => {
+        const d = document.createElement('div');
+        d.textContent = day;
+        container.appendChild(d);
+    });
+}
+
+// ── month navigation ────────────────────────────────────────
+function changeMonth(delta) {
+    calMonth += delta;
+    if (calMonth > 11) { calMonth = 0;  calYear++; }
+    if (calMonth < 0)  { calMonth = 11; calYear--; }
+    renderCalendar();
+}
+
+// ── render date grid ─────────────────────────────────────────
+function renderCalendar() {
+    const MONTHS = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+
+    document.getElementById('cal-month-label').textContent =
+        `${MONTHS[calMonth]} ${calYear}`;
+
+    const availableDates = new Set(allSlots.map(s => s.date));
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const firstDow    = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    const container = document.getElementById('cal-dates');
+    container.innerHTML = '';
+
+    // blank spacer cells
+    for (let i = 0; i < firstDow; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'empty';
+        container.appendChild(blank);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const cell     = document.createElement('div');
+        const dateStr  = `${calYear}-${String(calMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const cellDate = new Date(calYear, calMonth, day);
+
+        cell.textContent = day;
+
+        const isPast   = cellDate < today;
+        const isToday  = cellDate.toDateString() === today.toDateString();
+        const hasSlots = availableDates.has(dateStr);
+
+        if (!isPast && hasSlots) {
+            cell.classList.add('available');
+            if (dateStr === selectedDate) cell.classList.add('selected');
+            cell.onclick = () => selectDate(dateStr);
+        }
+
+        if (isToday) cell.classList.add('today');
+
+        container.appendChild(cell);
+    }
+
+    // disable prev button when at current month
+    const nowDate = new Date();
+    const atMin   = calYear === nowDate.getFullYear() && calMonth === nowDate.getMonth();
+    document.getElementById('btn-prev').disabled = atMin;
+}
+
+// ── select a date → show times ───────────────────────────────
+function selectDate(dateStr) {
+    selectedDate = dateStr;
+    renderCalendar();
+
+    const [y, mo, d] = dateStr.split('-').map(Number);
+    const DAYS_FULL   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHS_FULL = ['January','February','March','April','May','June',
+                         'July','August','September','October','November','December'];
+    const dayLabel = `${DAYS_FULL[new Date(y, mo-1, d).getDay()]}, ${MONTHS_FULL[mo-1]} ${d}`;
+
+    document.getElementById('time-placeholder').style.display = 'none';
+    document.getElementById('time-container').style.display   = 'block';
+    document.getElementById('time-date-label').textContent    = dayLabel;
+    document.getElementById('time-date-sub').textContent      = `${MONTHS_FULL[mo-1]} ${d}, ${y}`;
+
+    const daySlots = allSlots.filter(s => s.date === dateStr);
+    const list     = document.getElementById('slot-list');
+    list.innerHTML = '';
+
+    if (!daySlots.length) {
+        list.innerHTML = '<div class="placeholder" style="padding:20px 0">No slots on this date.</div>';
+        return;
+    }
+
+    daySlots.forEach(slot => {
+        const row = document.createElement('div');
+        row.className = 'slot-row';
+
+        const timeBtn = document.createElement('button');
+        timeBtn.className   = 'slot-time-btn';
+        timeBtn.textContent = formatTime(slot.startTime);
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className   = 'slot-confirm-btn';
+        confirmBtn.textContent = 'Next';
+
+        timeBtn.onclick = () => {
+            document.querySelectorAll('.slot-time-btn').forEach(b => b.classList.remove('selecting'));
+            document.querySelectorAll('.slot-confirm-btn').forEach(b => b.classList.remove('visible'));
+            timeBtn.classList.add('selecting');
+            confirmBtn.classList.add('visible');
+        };
+
+        confirmBtn.onclick = () => {
+            sessionStorage.setItem('pendingBooking', JSON.stringify({
+                slotId:     slot.id,
+                ownerName:  `${ownerInfo.firstName} ${ownerInfo.lastName}`.trim(),
+                ownerEmail: ownerInfo.email,
+                date:       slot.date,
+                startTime:  slot.startTime,
+                endTime:    slot.endTime,
+            }));
+            window.location.href = 'confirm.html';
+        };
+
+        row.appendChild(timeBtn);
+        row.appendChild(confirmBtn);
+        list.appendChild(row);
+    });
+}
+
+// ── "HH:MM:SS" → "10:00am" ──────────────────────────────────
+function formatTime(t) {
+    const [h, m] = t.split(':').map(Number);
+    const suffix = h >= 12 ? 'pm' : 'am';
+    const h12    = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2,'0')}${suffix}`;
+}
+
+init();
+</script>
+
+</body>
+</html>
