@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Meetings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<style>
+    body {
+        margin: 0;
+        background-color: lightgray;
+    }
+
+    .container {
+
+    }
+
+    .dashboard {
+            width: 270px;
+            height: 100vh;
+            border-top-right-radius: 35px;
+            border-bottom-right-radius: 35px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+
+        .slide button {
+            position: absolute;
+            left: 270px;
+            top: 5px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+
+
+
+        .slide {
+            width: 270px;
+      
+            position: fixed;
+            left: 0;
+            transition: transform 0.3s ease-in-out;
+            
+        }
+
+        .slide.hidden {
+            transform: translateX(-270px);
+        }
+
+
+        .dashboard div {
+            display: flex;
+            align-items: center;  
+            margin-left: 20px;
+        }
+
+
+
+        .d1 {
+            padding-top: 30px;
+        }
+
+        .dashboard img {
+            width:50px;
+            height:auto;
+            margin-left: 15px;
+        }
+
+        .dashboard a {
+            text-decoration: none;
+            color: black;
+            font-size: 20px;
+
+        }
+
+        .d2 {
+            background-color: lightgray;
+            margin-left: 20px;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            
+        }
+
+
+        .dashboard div:not(.d2, .okay, .pic):hover {
+            background-color: #f6f6f6;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+        }
+
+        .okay {
+            border-top-right-radius: 20px;
+            gap: 10px;
+            padding-top: 50px;
+            padding-bottom: 10px;
+            padding-left: 20px;
+        }
+
+        .pic {
+            margin-top: auto;
+            padding-bottom: 100px;
+        }
+
+        .pic img {
+            width: 60px;
+            height: auto;
+            display: block;
+        
+            padding-right: 18px;
+        }
+
+        .topnav {
+            display: flex;
+            z-index: 9999;
+            top:0;
+            position: sticky;
+            height: 75px;
+            padding-right: 20px;
+            align-items: center;
+            background-color: #ED1B2F;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        
+        }
+
+        .right {
+            display: flex;
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+
+        .right a{
+            text-decoration: none;
+            color: white;
+            padding: 24px 12px;
+            font-size: 18px;
+            
+        }
+
+        .right a:hover {
+            text-decoration: underline;
+        }
+
+        .left {
+            display: flex;
+            padding-left: 20px;
+           
+        }
+
+        .left h3{
+            
+            color: white;
+            font-size: 30px;
+        }
+
+        .ok {
+            display: flex;
+        }
+
+        .main {
+            margin-left: 310px;
+            padding: 30px;
+            width: 100vw;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main.shifted {
+            margin-left: 0;
+        }
+
+        .main p {
+            margin-top: -10px;
+            color: #8f8f8f;
+        }
+
+        .button {
+            border: none;
+            background-color: transparent;
+            font-size: 17px;
+            padding: 10px 10px 10px 10px;
+            font-family: 'Times New Roman', Times, serif;
+            color: white;
+        }
+
+        #yikes {
+            border-top-left-radius: 15px;
+            padding-left: 15px;
+        }
+
+        .button:hover {
+            background-color:white;
+            color:#ED1B2F;
+            
+        }
+
+        .button.active {
+            background-color: white;
+            color:#ED1B2F;
+        }
+
+        .ok1 {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            background-color:#ED1B2F;
+            margin-left: -15px;         
+        }
+
+        .tab {
+            padding-top: 10px;
+            background-color: white;
+            padding-left: 10px;
+       
+        }
+
+        .view {
+            background-color: white;
+            padding-left: 15px;
+            border-radius: 15px;
+            padding-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+          
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 2fr 1fr 2fr;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .row button {
+            background-color: transparent;
+            cursor: pointer;
+            padding: 5px 5px 5px 5px;
+            border: 1px solid #1e78de;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #1e78de;
+            margin-right: 7px;
+            border-radius: 5px;
+        }
+
+        .row button:hover {
+            border: 1px solid #ED1B2F;
+            color:#ED1B2F;
+        }
+
+        .m {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            
+        }
+
+        .m button {
+            margin-left: auto;
+            padding: 7px 12px 7px 12px;
+            margin-right: 10px;
+            margin-bottom: -15px;
+            cursor: pointer;
+            border: 1px solid #1e78de;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #1e78de;
+            border-radius: 5px;
+        }
+
+        .m button:hover {
+            border: 1px solid #ED1B2F;
+            color:#ED1B2F;
+        }
+
+ 
+
+  
+
+
+
+
+</style>
+
+<body>
+    <div class="container">
+
+        <div class="topnav">
+
+            <div class="left">
+                <h3>McGill Bookings</h3>
+            </div>
+
+            <div class="right">
+                <a href="homepage.html">Home</a>
+                <a href="#">Contact Us</a>
+                <a href="#">My Account</a>
+            </div>
+
+        </div>
+        <br>
+
+        <div class="ok">
+            <div class="slide" id="slide1">
+
+                    <div class="dashboard">
+
+                        <div class="okay">
+                            <h2>Welcome, name!</h2>
+                        </div>
+        
+                        <div class="d2">
+                            <img src="images/Dash.png" />
+                            <a href="owner-view.html">Dashboard</a>
+                        </div>
+
+                        <div class="d3">
+                            <img src="images/Book.png" />
+                            <a href="owner-book.html">Create Slots</a>
+                        </div>
+
+                        <div class="d4">
+                            <img src="images/finder.png" />
+                            <a href="requests.html">Booking Requests</a>
+                        </div>
+
+                        <div class="d5">
+                            <img src="images/account.png" />
+                            <a href="#MyAccount">My Account</a>
+                        </div>
+
+                        <div class="d6">
+                            <img src="images/logout.png" />
+                            <a href="#Logout">Logout</a>
+                        </div>
+
+                        <div class="pic">
+                            <img src="images/logo-ssmu.svg" />
+                        </div>
+                    
+                    </div>
+
+                    <button onclick="toggleDash()"><i class="fa fa-bars"></i></button>
+
+                    
+                </div>
+
+                <div class="main">
+
+                    <div class="name"> 
+                        <h2>My Appointments</h2>
+                        <p>View your upcoming appointments, active, and inactive slots here. Activate slots so that students can book them. </p>
+
+                        <div class="m">
+                            <button onclick="exportCalendar()">Export to Calender</button>
+                        </div>
+     
+                    </div>
+
+                    <div class="view">
+                        <div class="ok1">
+                            <button class="button active" id="yikes" onclick="openTab('meetings', this)">Meetings</button>
+                            <button class="button" onclick="openTab('active', this)">Active Slots</button>
+                            <button class="button" onclick="openTab('inactive', this)">Inactive Slots</button>
+                        </div>
+
+                        <div id="meetings" class="tab">
+
+                            <div class="row header">
+                                <div>Date</div>
+                                <div>Time</div>
+                                <div>Meeting With</div>
+                                <div>Location</div>
+                                <div>Actions</div>
+                            </div>
+
+                            <div id="meetingsList"></div>
+
+
+                        </div>
+
+                        <div id="active" class="tab" style="display:none">
+
+                            <div class="row header">
+                                <div>Date</div>
+                                <div>Time</div>
+                                <div>Meeting With</div>
+                                <div>Location</div>
+                                <div>Actions</div>
+                            </div>
+
+                            <div id="activeList"></div>
+
+                        </div>
+
+                        <div id="inactive" class="tab" style="display:none">
+                            <div class="row header">
+                                <div>Date</div>
+                                <div>Time</div>
+                                <div>Meeting With</div>
+                                <div>Location</div>
+                                <div>Actions</div>
+                    </div>
+
+                            <div id="inactiveList"></div>
+                        </div>
+
+                </div>
+
+
+        </div>
+
+        
+
+
+    </div>
+
+
+
+   <script>
+
+        function toggleDash() {
+            document.getElementById("slide1").classList.toggle("hidden");
+            document.querySelector(".main").classList.toggle("shifted");
+        }
+
+        function openTab(cityName, btn) {
+            var i;
+            var x = document.getElementsByClassName("tab");
+            for (i = 0; i < x.length; i++) {
+                x[i].style.display = "none";  
+            }
+            document.getElementById(cityName).style.display = "block";  
+
+            var buttons = document.getElementsByClassName("button");
+            for (i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+            }
+            btn.classList.add("active");
+
+            tab(cityName);
+        }
+
+        const fakedata = [ 
+            {date: "March 17 2026", time: "9am-10am", with: "student 1", where: "LEA 126", email:"username@mcgill.com", type: "meetings", id: 1}, 
+            {date: "March 19 2026", time: "6am-7am", with: "", where: "LEA 999", email:"username2@mcgill.com", type: "active", id: 3}, 
+            {date: "March 20 2026", time: "5am-6am", with: "", where: "LEA 000", email:"username2@mcgill.com", type: "inactive", id: 4}
+        ];
+
+        function load() {
+            tab("meetings");
+            tab("inactive");
+            tab("active");
+        }
+        
+        function tab(type) { 
+            const container = document.getElementById(type + "List"); 
+            container.innerHTML = ""; 
+
+            const filtered =fakedata.filter(item => item.type === type);
+
+            filtered.forEach(meeting => {
+                const row = document.createElement("div");
+                row.className = "row";
+
+                let actions = "";
+
+                if (meeting.type === "inactive") {
+                    actions = `
+                        <button onclick="activateMeeting('${meeting.id}')">Activate</button>
+                        <button onclick="cancelMeeting('${meeting.id}')">Cancel</button>
+                    `;
+                    
+
+                } 
+                if (meeting.type === "meetings") {
+                    actions = `
+                        <button onclick="sendEmail('${meeting.email}')">Email</button>
+                        <button onclick="genURL('${meeting.id}')">Get URL</button>
+                        <button onclick="cancelMeeting('${meeting.id}')">Cancel</button>
+                    `;    
+                }
+
+                if (meeting.type === "active") {
+                    actions = `
+                        <button onclick="genURL('${meeting.id}')">Get URL</button>
+                        <button onclick="cancelMeeting('${meeting.id}')">Cancel</button>
+                    `;    
+                }
+
+                row.innerHTML = `
+                    <div>${meeting.date}</div> 
+                    <div>${meeting.time}</div> 
+                    <div>${meeting.with}</div> 
+                    <div>${meeting.where}</div> 
+                    <div>${actions}</div>
+        
+                `; 
+                container.appendChild(row); 
+            }) 
+        }
+    
+        function sendEmail(email) { 
+            window.location.href = `mailto:${email}`;
+        }
+
+        function cancelMeeting(id) { 
+            id = Number(id);
+            
+            const index = fakedata.findIndex(item => item.id === id);
+
+            if (index !== -1) {
+                fakedata.splice(index, 1);
+            }
+            
+
+            tab("inactive");
+            tab("active");
+            tab("meetings");
+            
+        } 
+
+        function activateMeeting(id) { 
+
+            id = Number(id);
+            const meeting = fakedata.find(item => item.id === id);
+
+            if (!meeting) { return; }
+            
+            meeting.type = "active";
+
+            tab("inactive");
+            tab("active");
+            tab("meetings");
+        }
+
+        function genURL(id) { 
+
+        }
+        window.onload = load;   
+
+
+
+    </script>
+</body>
+</html>
