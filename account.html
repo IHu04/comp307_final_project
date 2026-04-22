@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - McGill Bookings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #d9d9d9;
+        }
+
+        /* ========== NAVBAR ========== */
+        .topnav {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            background: #e2291e;
+            padding: 0 20px;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .topnav h2 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-right a {
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .nav-right a:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .role-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: 260px;
+            height: calc(100vh - 70px);
+            background: white;
+            position: fixed;
+            left: 0;
+            top: 70px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            z-index: 90;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-260px);
+        }
+
+        .sidebar .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sidebar .menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar .menu-item.active {
+            background: #ffeaea;
+            color: #e2291e;
+            border-right: 3px solid #e2291e;
+        }
+
+        .sidebar .menu-item img {
+            width: 28px;
+            height: 28px;
+        }
+
+        .sidebar .pic {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .sidebar .pic img {
+            width: 50px;
+            opacity: 0.7;
+        }
+
+        /* Toggle Button */
+        .toggle-btn {
+            position: fixed;
+            left: 260px;
+            top: 80px;
+            background: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 0 8px 8px 0;
+            z-index: 200;
+            transition: left 0.3s ease;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .toggle-btn.shifted {
+            left: 0;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main {
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+            min-height: calc(100vh - 70px);
+        }
+
+        .main.shifted {
+            margin-left: 20px;
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #666;
+        }
+
+        /* Account Container */
+        .account-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #e2291e 0%, #b22d0a 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0 auto 15px;
+            border: 3px solid rgba(255,255,255,0.5);
+        }
+
+        .profile-name {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .profile-role {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .profile-body {
+            padding: 25px;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+        }
+
+        .info-section h3 {
+            font-size: 16px;
+            color: #e2291e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-label {
+            width: 100px;
+            font-weight: 600;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* Settings Card */
+        .settings-card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .settings-header {
+            background: #f5f5f5;
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-header h3 {
+            font-size: 18px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #e2291e;
+            box-shadow: 0 0 0 3px rgba(226,41,30,0.1);
+        }
+
+        .password-strength {
+            margin-top: 8px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            margin-top: 5px;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .strength-fill.weak { background: #e2291e; width: 33%; }
+        .strength-fill.medium { background: #ff9800; width: 66%; }
+        .strength-fill.strong { background: #4caf50; width: 100%; }
+
+        .strength-text {
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: #e2291e;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-save:hover {
+            background: #b22d0a;
+            transform: translateY(-2px);
+        }
+
+        .btn-save:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Danger Zone / Export */
+        .danger-zone {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .danger-zone h4 {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .btn-danger {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #e2291e;
+            border: 1px solid #e2291e;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-danger:hover { background: #ffeaea; }
+
+        /* Success/Error Messages */
+        .success-message {
+            background: #e8f5e9;
+            color: #4caf50;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #ffeaea;
+            color: #e2291e;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main {
+                margin-left: 20px;
+                padding: 20px;
+            }
+            .sidebar {
+                transform: translateX(-260px);
+            }
+            .toggle-btn {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="topnav">
+    <h2>👤 My Account</h2>
+    <div class="nav-right">
+        <span class="role-badge" id="roleBadge">Student View</span>
+        <a href="book.html">Book</a>
+        <a href="view.html">My Bookings</a>
+        <a href="teamup.html">TeamUp</a>
+        <a href="account.html">My Account</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="menu-item" onclick="location.href='book.html'">
+        <img src="images/Book.png" alt="Book"><span>Book Appointment</span>
+    </div>
+    <div class="menu-item" onclick="location.href='view.html'">
+        <img src="images/Dash.png" alt="Dashboard"><span>My Bookings</span>
+    </div>
+    <div class="menu-item" onclick="location.href='teamup.html'">
+        <img src="images/finder.png" alt="Team"><span>TeamFinder</span>
+    </div>
+    <div class="menu-item active" onclick="location.href='account.html'">
+        <img src="images/account.png" alt="Account"><span>My Account</span>
+    </div>
+    <div class="pic">
+        <img src="images/logo-ssmu.svg" alt="SSMU">
+    </div>
+</div>
+
+<button class="toggle-btn" id="toggleBtn" onclick="toggleSidebar()">☰</button>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="main">
+    <div class="page-header">
+        <h1>My Account</h1>
+        <p>Manage your profile, security settings, and account preferences</p>
+    </div>
+
+    <div class="account-container">
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+                <div class="profile-name" id="profileName">Loading...</div>
+                <div class="profile-role" id="profileRole">Loading...</div>
+            </div>
+            <div class="profile-body">
+                <div class="info-section">
+                    <h3>📋 Account Information</h3>
+                    <div class="info-row">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value" id="infoName">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value" id="infoEmail">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Account Type</div>
+                        <div class="info-value" id="infoRole">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Member Since</div>
+                        <div class="info-value" id="infoSince">-</div>
+                    </div>
+                </div>
+                <div class="info-section">
+                    <h3>📊 Account Stats</h3>
+                    <div class="info-row">
+                        <div class="info-label">Total Bookings</div>
+                        <div class="info-value" id="statsBookings">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Active Slots</div>
+                        <div class="info-value" id="statsActiveSlots">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Card -->
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3>🔐 Security Settings</h3>
+            </div>
+            <div class="settings-body">
+                <div id="successMsg" class="success-message"></div>
+                <div id="errorMsg" class="error-message"></div>
+
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="currentPassword" placeholder="Enter your current password">
+                </div>
+
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password">
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <div class="strength-text" id="strengthText"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                </div>
+
+                <button class="btn-save" onclick="changePassword()">
+                    Update Password
+                </button>
+
+                <div class="danger-zone">
+                    <h4>📥 Data Export</h4>
+                    <button class="btn-danger" onclick="exportData()">
+                        Export My Bookings to Calendar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="shared.js"></script>
+<script src="calendar-export.js"></script>
+<script>
+    let currentUser = null;
+    let allBookings = [];
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function checkPasswordStrength(password) {
+        const fillElement = document.getElementById('strengthFill');
+        const textElement = document.getElementById('strengthText');
+        
+        if (!password) {
+            fillElement.className = 'strength-fill';
+            textElement.textContent = '';
+            return;
+        }
+        
+        let strength = 0;
+        if (password.length >= 6) strength++;
+        if (password.length >= 10) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        
+        fillElement.className = 'strength-fill';
+        if (strength <= 1) {
+            fillElement.classList.add('weak');
+            textElement.textContent = 'Weak password';
+            textElement.style.color = '#e2291e';
+        } else if (strength <= 3) {
+            fillElement.classList.add('medium');
+            textElement.textContent = 'Medium password';
+            textElement.style.color = '#ff9800';
+        } else {
+            fillElement.classList.add('strong');
+            textElement.textContent = 'Strong password';
+            textElement.style.color = '#4caf50';
+        }
+    }
+
+    async function loadUserData() {
+        currentUser = await API.requireAuth();
+        if (!currentUser) return;
+
+        // Update nav and sidebar links based on role
+        if (currentUser.isOwner) {
+            document.querySelector('.nav-right').innerHTML = `
+                <span class="role-badge">👨‍🏫 Professor View</span>
+                <a href="owner-view.html">Dashboard</a>
+                <a href="owner-book.html">Create Slots</a>
+                <a href="requests.html">Requests</a>
+                <a href="account.html">My Account</a>
+                <a href="#" onclick="API.logout()">Logout</a>
+            `;
+            document.getElementById('sidebar').innerHTML = `
+                <div class="menu-item" onclick="location.href='owner-view.html'">
+                    <img src="images/Dash.png" alt="Dashboard"><span>Dashboard</span>
+                </div>
+                <div class="menu-item" onclick="location.href='owner-book.html'">
+                    <img src="images/Book.png" alt="Create"><span>Create Slots</span>
+                </div>
+                <div class="menu-item" onclick="location.href='requests.html'">
+                    <img src="images/finder.png" alt="Requests"><span>Booking Requests</span>
+                </div>
+                <div class="menu-item active" onclick="location.href='account.html'">
+                    <img src="images/account.png" alt="Account"><span>My Account</span>
+                </div>
+                <div class="pic">
+                    <img src="images/logo-ssmu.svg" alt="SSMU">
+                </div>
+            `;
+        }
+
+        // Set profile info
+        const initials = (currentUser.firstName[0] || '') + (currentUser.lastName[0] || '');
+        document.getElementById('profileAvatar').textContent = initials.toUpperCase() || '?';
+        document.getElementById('profileName').textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+        document.getElementById('profileRole').textContent = currentUser.isOwner ? '👨‍🏫 Professor / Teaching Assistant' : '🎓 Student';
+        
+        document.getElementById('infoName').textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+        document.getElementById('infoEmail').textContent = currentUser.email;
+        document.getElementById('infoRole').textContent = currentUser.isOwner ? 'Professor/TA (Owner)' : 'Student';
+        document.getElementById('infoSince').textContent = currentUser.createdAt || 'January 2026';
+        
+        const roleBadge = document.getElementById('roleBadge');
+        roleBadge.textContent = currentUser.isOwner ? '👨‍🏫 Professor View' : '🎓 Student View';
+        
+        // Load stats
+        await loadStats();
+    }
+    
+    async function loadStats() {
+        try {
+            const data = await API.get('/dashboard');
+            allBookings = data.appointments || [];
+            document.getElementById('statsBookings').textContent = allBookings.length;
+            
+            if (currentUser?.isOwner) {
+                const slotsData = await API.get('/slots/mine');
+                const activeSlots = (slotsData.slots || []).filter(s => s.status === 'active').length;
+                document.getElementById('statsActiveSlots').textContent = activeSlots;
+            } else {
+                document.getElementById('statsActiveSlots').textContent = 'N/A';
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+            document.getElementById('statsBookings').textContent = 'Error';
+            document.getElementById('statsActiveSlots').textContent = 'Error';
+        }
+    }
+
+    async function changePassword() {
+        const current = document.getElementById('currentPassword').value;
+        const newPw = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        
+        const successDiv = document.getElementById('successMsg');
+        const errorDiv = document.getElementById('errorMsg');
+        
+        successDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+        
+        if (!current || !newPw || !confirm) {
+            errorDiv.textContent = '⚠️ All fields are required';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        if (newPw !== confirm) {
+            errorDiv.textContent = '⚠️ New passwords do not match';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        if (newPw.length < 6) {
+            errorDiv.textContent = '⚠️ Password must be at least 6 characters';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        const btn = document.querySelector('.btn-save');
+        btn.disabled = true;
+        btn.textContent = '⏳ Updating...';
+        
+        try {
+            await API.patch('/auth/password', { 
+                currentPassword: current, 
+                newPassword: newPw 
+            });
+            
+            successDiv.textContent = '✓ Password updated successfully!';
+            successDiv.style.display = 'block';
+            
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('strengthFill').className = 'strength-fill';
+            document.getElementById('strengthText').textContent = '';
+            
+            showToast('Password updated!');
+            
+        } catch (error) {
+            errorDiv.textContent = 'Error: ' + (error.message || 'Could not update password');
+            errorDiv.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Update Password';
+        }
+    }
+
+    function exportData() {
+        if (allBookings.length === 0) {
+            showToast('No bookings to export');
+            return;
+        }
+        
+        allBookings.forEach(booking => {
+            const startDateTime = new Date(`${booking.date}T${booking.startTime}`);
+            const endDateTime = new Date(`${booking.date}T${booking.endTime}`);
+            
+            if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime())) {
+                downloadICS({
+                    id: booking.slotId,
+                    start: startDateTime,
+                    end: endDateTime,
+                    title: `Meeting with ${booking.otherParty?.name || 'McGill Contact'}`,
+                    description: `Appointment booked through McGill Bookings.\nDate: ${booking.date}\nTime: ${booking.startTime} - ${booking.endTime}`,
+                    location: booking.location || 'McGill University'
+                });
+            }
+        });
+        
+        showToast(`Exported ${allBookings.length} booking(s) to calendar`);
+    }
+
+    // Password strength monitoring
+    document.getElementById('newPassword').addEventListener('input', function() {
+        checkPasswordStrength(this.value);
+    });
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main');
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        sidebar.classList.toggle('hidden');
+        main.classList.toggle('shifted');
+        toggleBtn.classList.toggle('shifted');
+    }
+
+    // Initialize
+    async function init() {
+        await loadUserData();
+    }
+    
+    init();
+</script>
+</body>
+</html>

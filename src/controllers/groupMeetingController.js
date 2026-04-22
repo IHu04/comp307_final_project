@@ -1,3 +1,7 @@
+// type 2 booking: group meeting time polls
+// owner creates meeting with time options and participant emails
+// students vote or retract votes; owner finalizes and creates booking_slots rows
+// recurring finalize repeats the chosen slot across recur_weeks consecutive weeks
 import { DateTime } from 'luxon';
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -113,7 +117,7 @@ export const createGroupMeeting = asyncHandler(async (req, res) => {
   );
   const foundByEmail = new Map(userRows.map((u) => [String(u.email).toLowerCase(), u.id]));
   const unknownEmails = participantEmails.filter((e) => !foundByEmail.has(e));
-  // Skip unregistered emails with a warning rather than aborting the whole request.
+  // unknown emails are skipped with a warning instead of failing the whole create
 
   const participantUserIds = participantEmails
     .map((e) => foundByEmail.get(e))
@@ -298,9 +302,7 @@ export const voteOnGroupMeeting = asyncHandler(async (req, res) => {
       });
     }
 
-    // Replace this user's votes with the submitted set (upsert behaviour).
-    // Delete existing votes for this meeting that are NOT in the new selection,
-    // then insert any new ones — silently ignoring re-votes on already-selected options.
+    // replace votes with the posted set: delete votes not in ids, insert missing rows, ignore duplicates
     await connection.query(
       `DELETE gmv FROM group_meeting_votes gmv
        INNER JOIN group_meeting_options gmo ON gmo.id = gmv.option_id
@@ -310,7 +312,7 @@ export const voteOnGroupMeeting = asyncHandler(async (req, res) => {
     );
 
     for (const optId of ids) {
-      // INSERT IGNORE skips already-existing votes without error.
+      // insert ignore avoids errors when the vote row already exists
       await connection.query(
         `INSERT IGNORE INTO group_meeting_votes (option_id, user_id) VALUES (?, ?)`,
         [optId, userId]
@@ -463,7 +465,7 @@ export const finalizeGroupMeeting = asyncHandler(async (req, res) => {
   }
 });
 
-/** DELETE /api/group-meetings/:id/vote — remove all of the current user's votes */
+// delete all votes for this meeting from the current user
 export const retractVote = asyncHandler(async (req, res) => {
   const meetingId = req.params.id;
   const userId = req.session.userId;

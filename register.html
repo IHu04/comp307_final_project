@@ -13,7 +13,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 
@@ -67,13 +67,22 @@ body {
     display: block;
 }
 
-input {
+input[type="text"], input[type="email"], input[type="password"] {
     width: 577px;
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 10px;
     border: 1px solid lightgray;
+    box-sizing: border-box;
+    width: 100%;
 }
+
+.name-row {
+    display: flex;
+    gap: 10px;
+}
+
+.name-row input { flex: 1; }
 
 .student-role p, .staff-role p {
     margin-bottom: 5px;
@@ -83,6 +92,13 @@ input {
     color:darkgray;
     font-size: 14px;
     margin-top: -3px;
+}
+
+#err {
+    color: #b22d0a;
+    font-size: 14px;
+    min-height: 18px;
+    margin-top: 5px;
 }
 
 .signup {
@@ -102,20 +118,15 @@ input {
     text-align: center;
     border: 1px solid #ccc;
     margin-top: 20px;
-
-
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
 }
 
 .button:hover {
-    background-color: #b22d0a;
+    background-color: #b22d0a;;
 }
 
-button.button {
-    cursor: pointer;
-    font-size: inherit;
-    font-family: inherit;
-}
- 
 </style>
 
 
@@ -127,7 +138,7 @@ button.button {
     <input type="radio" name="role" id="student" checked>
     <input type="radio" name="role" id="staff">
 
-    
+
     <div class="toggle">
         <label for="student">Student</label>
         <label for="staff">Staff</label>
@@ -135,92 +146,96 @@ button.button {
 
 
     <div class="student-role">
-        <p>First Name</p>
-        <input type="text" id="stu-first" placeholder="First name">
-        <p>Last Name</p>
-        <input type="text" id="stu-last" placeholder="Last name">
+        <div class="name-row">
+            <input type="text" id="stu-first" placeholder="First name">
+            <input type="text" id="stu-last" placeholder="Last name">
+        </div>
         <p>McGill Student Email</p>
-        <input type="email" id="email-stu" placeholder="username@mail.mcgill.ca">
+        <input type="email" id="stu-email" placeholder="username@mail.mcgill.ca">
         <p>Password</p>
-        <input type="password" id="pass-stu1" placeholder="password">
-        <div class="info"><p>Use 8 or more characters with a mix of letters, numbers, &amp; symbols.</p></div>
+        <input type="password" id="stu-pass1" placeholder="password">
+        <div class="info"><p>Use 8 or more characters with a mix of letters, numbers, & symbols.</p>
+        </div>
         <p>Repeat Password</p>
-        <input type="password" id="pass-stu2" placeholder="password">
+        <input type="password" id="stu-pass2" placeholder="password">
     </div>
+
 
     <div class="staff-role">
-        <p>First Name</p>
-        <input type="text" id="sta-first" placeholder="First name">
-        <p>Last Name</p>
-        <input type="text" id="sta-last" placeholder="Last name">
+        <div class="name-row">
+            <input type="text" id="sta-first" placeholder="First name">
+            <input type="text" id="sta-last" placeholder="Last name">
+        </div>
         <p>McGill Staff Email</p>
-        <input type="email" id="email-sta" placeholder="username@mcgill.ca">
+        <input type="email" id="sta-email" placeholder="username@mcgill.ca">
         <p>Password</p>
-        <input type="password" id="pass-sta1" placeholder="password">
-        <div class="info"><p>Use 8 or more characters with a mix of letters, numbers, &amp; symbols.</p></div>
+        <input type="password" id="sta-pass1" placeholder="password">
+        <div class="info"><p>Use 8 or more characters with a mix of letters, numbers, & symbols.</p>
+        </div>
         <p>Repeat Password</p>
-        <input type="password" id="pass-sta2" placeholder="password">
+        <input type="password" id="sta-pass2" placeholder="password">
+
     </div>
 
-    <p id="reg-error" style="color:#e2291e;font-size:14px;display:none;margin-top:10px;"></p>
+    <div id="err"></div>
 
     <div class="signup">
         <a href="homepage.html" class="button">Back</a>
-        <button type="button" id="btn-register" class="button">Register</button>
+        <button class="button" id="registerBtn" type="button">Register</button>
     </div>
 
 </div>
 
+<script src="shared.js"></script>
 <script>
-  document.getElementById('btn-register').addEventListener('click', async () => {
-    const errEl = document.getElementById('reg-error');
-    errEl.style.display = 'none';
+(async function () {
+    const existing = await API.getUser();
+    if (existing) {
+        window.location.href = existing.isOwner ? 'owner-view.html' : 'view.html';
+    }
+})();
 
-    // Determine active role
+document.getElementById('registerBtn').addEventListener('click', async () => {
+    const err = document.getElementById('err');
+    err.textContent = '';
+
     const isStaff = document.getElementById('staff').checked;
-    const firstName = document.getElementById(isStaff ? 'sta-first' : 'stu-first').value.trim();
-    const lastName  = document.getElementById(isStaff ? 'sta-last'  : 'stu-last').value.trim();
-    const email     = document.getElementById(isStaff ? 'email-sta' : 'email-stu').value.trim();
-    const password  = document.getElementById(isStaff ? 'pass-sta1' : 'pass-stu1').value;
-    const confirm   = document.getElementById(isStaff ? 'pass-sta2' : 'pass-stu2').value;
+    const prefix = isStaff ? 'sta' : 'stu';
+    const firstName = document.getElementById(`${prefix}-first`).value.trim();
+    const lastName  = document.getElementById(`${prefix}-last`).value.trim();
+    const email     = document.getElementById(`${prefix}-email`).value.trim();
+    const pass1     = document.getElementById(`${prefix}-pass1`).value;
+    const pass2     = document.getElementById(`${prefix}-pass2`).value;
 
-    if (!firstName || !lastName || !email || !password) {
-      errEl.textContent = 'All fields are required.';
-      errEl.style.display = 'block';
-      return;
+    if (!firstName || !lastName) {
+        err.textContent = 'First name and last name are required.';
+        return;
     }
-    if (password !== confirm) {
-      errEl.textContent = 'Passwords do not match.';
-      errEl.style.display = 'block';
-      return;
+    if (!email) { err.textContent = 'Email is required.'; return; }
+    if (pass1.length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
+    if (pass1 !== pass2)  { err.textContent = 'Passwords do not match.'; return; }
+
+    // Surface correct-domain hint early
+    if (isStaff && !/@mcgill\.ca$/i.test(email)) {
+        err.textContent = 'Staff email must end in @mcgill.ca';
+        return;
     }
-    if (password.length < 8) {
-      errEl.textContent = 'Password must be at least 8 characters.';
-      errEl.style.display = 'block';
-      return;
+    if (!isStaff && !/@mail\.mcgill\.ca$/i.test(email)) {
+        err.textContent = 'Student email must end in @mail.mcgill.ca';
+        return;
     }
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ firstName, lastName, email, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        window.location.href = 'homepage.html';
-      } else {
-        // Show the first specific validation error if available
-        const detail = data.details?.[0]?.msg;
-        errEl.textContent = detail || data.message || 'Registration failed. Please try again.';
-        errEl.style.display = 'block';
-      }
-    } catch {
-      errEl.textContent = 'Network error. Please try again.';
-      errEl.style.display = 'block';
+        const data = await API.post('/auth/register', {
+            email, password: pass1, firstName, lastName,
+        });
+        const user = data.user;
+        window.location.href = user.isOwner ? 'owner-view.html' : 'view.html';
+    } catch (e) {
+        err.textContent = e.message || 'Registration failed.';
     }
-  });
+});
 </script>
+
 </body>
 </html>

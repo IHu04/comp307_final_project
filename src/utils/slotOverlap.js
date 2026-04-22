@@ -1,10 +1,11 @@
+// db-level overlap queries used before inserting or activating slots
+// both functions accept an active connection so they can run inside a caller-controlled transaction
 import { normalizeTime, rangesOverlap } from './slotTime.js';
 import { sameCalendarDay } from './dateSlot.js';
 
-/**
- * True if the owner already has a non-cancelled slot overlapping [start, end] on date.
- * @param {number|null} [excludeSlotId] - ignore this slot (e.g. the draft being activated).
- */
+// returns true when the owner already has a slot in draft/active/booked status
+// whose time overlaps [start, end] on the given date
+// pass excludeSlotId to ignore a specific slot (e.g. the one being activated)
 export async function ownerHasOverlappingSlot(connection, ownerId, date, start, end, excludeSlotId = null) {
   let sql = `SELECT id FROM booking_slots
      WHERE owner_id = ? AND date = ? AND status IN ('draft', 'active', 'booked')
@@ -19,17 +20,10 @@ export async function ownerHasOverlappingSlot(connection, ownerId, date, start, 
   return hit.length > 0;
 }
 
-/**
- * True if the user has a booked slot on the same calendar day that time-overlaps [start, end].
- */
-export async function userHasOverlappingBooking(
-  connection,
-  userId,
-  date,
-  start,
-  end,
-  { excludeSlotId } = {}
-) {
+// returns true when the user already has a booked slot on the same calendar day
+// whose time overlaps [start, end]
+// fetches all of the user's bookings in one query then filters in js
+export async function userHasOverlappingBooking(connection, userId, date, start, end, { excludeSlotId } = {}) {
   let sql = `SELECT id, date, start_time, end_time FROM booking_slots
      WHERE booked_by = ? AND status = 'booked'`;
   const params = [userId];
@@ -41,14 +35,8 @@ export async function userHasOverlappingBooking(
   const st = normalizeTime(start);
   const et = normalizeTime(end);
   for (const b of rows) {
-    if (!sameCalendarDay(b.date, date)) {
-      continue;
-    }
-    const bStart = normalizeTime(b.start_time);
-    const bEnd = normalizeTime(b.end_time);
-    if (rangesOverlap(st, et, bStart, bEnd)) {
-      return true;
-    }
+    if (!sameCalendarDay(b.date, date)) continue;
+    if (rangesOverlap(st, et, normalizeTime(b.start_time), normalizeTime(b.end_time))) return true;
   }
   return false;
 }

@@ -16,7 +16,7 @@ if (env.nodeEnv === 'production') {
   app.set('trust proxy', 1);
 }
 
-// Parsing & shared security headers via CORS (credentials require explicit origin or reflected origin in dev)
+// json body parsers and cors; credentials need a real origin or dev wildcard behavior
 app.use(
   cors({
     origin: env.corsOrigin,
@@ -26,11 +26,11 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session (after cookie parser so signed cookies are available)
+// session after cookie parser so signed cookies parse first
 app.use(cookieParser(env.sessionSecret));
 app.use(sessionMiddleware());
 
-// Serve static frontend from project root (no index.html — use homepage for GET /)
+// static site from repo root; default file is homepage.html not index.html
 const publicRoot = path.join(__dirname, '..');
 app.use(
   express.static(publicRoot, {
@@ -38,10 +38,10 @@ app.use(
   })
 );
 
-// API routes
+// json api under /api
 app.use('/api', apiRoutes);
 
-// 404 + global error handler (must be last)
+// unmatched routes then centralized error json
 app.use(notFound);
 app.use(errorHandler);
 

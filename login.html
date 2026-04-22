@@ -33,13 +33,13 @@
         align-items: center;
         gap: 20px;
         padding-top: 5%;
-       
-    
+
+
     }
 
     .right img {
         width: 60px;
-        height: auto; 
+        height: auto;
     }
 
     .right h2{
@@ -67,10 +67,10 @@
         padding: 12px;
         border-radius: 10px;
         margin-bottom: 5px;
-        
+
         background-color: white;
         border: 1px solid #ccc;
-    } 
+    }
 
     .end {
         padding-top: 5%;
@@ -87,19 +87,22 @@
         text-align: center;
         border-radius: 10px;
         border: 1px solid #ccc;
+        cursor: pointer;
+        font-size: 14px;
+        font-family: inherit;
     }
 
     .button:hover {
         background-color: #b22d0a;
+
     }
 
-    button.button {
-        cursor: pointer;
-        font-size: inherit;
-        font-family: inherit;
+    #err {
+        color: #b22d0a;
+        font-size: 14px;
+        min-height: 18px;
+        margin-top: 10px;
     }
-
-
 
 </style>
 <body>
@@ -130,62 +133,65 @@
                         <input type="password" id="pass-sta" placeholder="password">
                     </div>
 
-                    <p id="login-error" style="color:#e2291e;font-size:14px;display:none;"></p>
+                    <div id="err"></div>
+
                  </div>
 
                  <div class="end">
                     <a href="homepage.html" class="button">Back</a>
-                    <button type="button" id="btn-continue" class="button">Continue</button>
+                    <button class="button" id="continueBtn" type="button">Continue</button>
                  </div>
-
-
-
-              
             </div>
 
 
         </div>
     </div>
+
+<script src="shared.js"></script>
 <script>
-  document.getElementById('btn-continue').addEventListener('click', async () => {
+(async function () {
+    // Already logged in? Go to dashboard.
+    const existing = await API.getUser();
+    if (existing) {
+        window.location.href = existing.isOwner ? 'owner-view.html' : 'view.html';
+        return;
+    }
+})();
+
+document.getElementById('continueBtn').addEventListener('click', async () => {
+    const err = document.getElementById('err');
+    err.textContent = '';
+
     const stuEmail = document.getElementById('email-stu').value.trim();
+    const stuPass  = document.getElementById('pass-stu').value;
     const staEmail = document.getElementById('email-sta').value.trim();
-    const errEl = document.getElementById('login-error');
+    const staPass  = document.getElementById('pass-sta').value;
 
     let email, password;
-    if (stuEmail) {
-      email = stuEmail;
-      password = document.getElementById('pass-stu').value;
-    } else if (staEmail) {
-      email = staEmail;
-      password = document.getElementById('pass-sta').value;
+    if (stuEmail || stuPass) {
+        email = stuEmail;
+        password = stuPass;
+    } else if (staEmail || staPass) {
+        email = staEmail;
+        password = staPass;
     } else {
-      errEl.textContent = 'Please enter your email and password.';
-      errEl.style.display = 'block';
-      return;
+        err.textContent = 'Please enter your email and password.';
+        return;
     }
 
-    errEl.style.display = 'none';
+    if (!email || !password) {
+        err.textContent = 'Both email and password are required.';
+        return;
+    }
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        window.location.href = 'homepage.html';
-      } else {
-        errEl.textContent = data.message || 'Login failed. Please try again.';
-        errEl.style.display = 'block';
-      }
-    } catch {
-      errEl.textContent = 'Network error. Please try again.';
-      errEl.style.display = 'block';
+        const data = await API.post('/auth/login', { email, password });
+        const user = data.user;
+        window.location.href = user.isOwner ? 'owner-view.html' : 'view.html';
+    } catch (e) {
+        err.textContent = e.message || 'Login failed.';
     }
-  });
+});
 </script>
 </body>
 </html>

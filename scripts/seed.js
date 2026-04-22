@@ -1,9 +1,5 @@
-/**
- * Dev seed: demo users + professor booking_slots.
- * Run after migrations: node scripts/seed.js
- * Removes existing rows for the three seed emails, then re-inserts.
- * Password for all seeded accounts: Seed123!
- */
+// dev seed: demo users and sample booking_slots; run after migrate: node scripts/seed.js
+// wipes the three seed emails then reinserts; password for all seeded accounts is Seed123!
 import 'dotenv/config';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcrypt';
@@ -83,7 +79,7 @@ async function main() {
       );
     }
 
-    // TA gets 2 active slots so they appear in the owner list
+    // ta gets two active slots so browse lists are non empty
     const taActiveSpecs = [
       { dayOffset: 5, start: '10:00', end: '10:30' },
       { dayOffset: 6, start: '14:00', end: '14:30' },
@@ -98,7 +94,7 @@ async function main() {
       );
     }
 
-    // ── Team requests (so teamup.html feed isn't empty) ──────────
+    // sample team requests so teamfinder pages are not empty
     const [teamRes1] = await connection.query(
       `INSERT INTO team_requests (creator_id, course_code, team_name, description, max_members, is_open)
        VALUES (?, 'COMP 307', 'Web Wizards', 'Looking for 1 more person for the COMP 307 project. We have backend covered, need a frontend person.', 4, TRUE)`,

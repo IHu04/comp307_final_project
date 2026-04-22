@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-// Stops the app right away if something important is missing from .env
+// fail fast when a required env var is missing
 function mustSet(key) {
   const val = process.env[key];
   if (val === undefined || val === '') {

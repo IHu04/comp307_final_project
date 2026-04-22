@@ -1,3 +1,4 @@
+// crud for the legacy bookings table (older schema alongside booking_slots)
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk, sendCreated } from '../utils/apiResponse.js';

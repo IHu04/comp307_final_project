@@ -1,13 +1,8 @@
-/** Compare MySQL DATE / string as YYYY-MM-DD */
-export function sameCalendarDay(a, b) {
-  return formatDateOnly(a) === formatDateOnly(b);
-}
+// utilities for working with mysql DATE values
+// mysql2 returns DATE columns as js Date objects set to midnight utc
+// we always use utc accessors so the formatted string is correct regardless of server timezone
 
-/**
- * Format a MySQL DATE value as YYYY-MM-DD.
- * mysql2 returns DATE columns as JS Date objects set to midnight UTC.
- * Use UTC accessors so the date is correct on any server timezone (including EDT/EST).
- */
+// format a mysql DATE value (or any YYYY-MM-DD string) as "YYYY-MM-DD"
 export function formatDateOnly(d) {
   if (d instanceof Date) {
     const y = d.getUTCFullYear();
@@ -16,4 +11,9 @@ export function formatDateOnly(d) {
     return `${y}-${m}-${day}`;
   }
   return String(d).slice(0, 10);
+}
+
+// returns true when two dates (Date objects or YYYY-MM-DD strings) fall on the same calendar day
+export function sameCalendarDay(a, b) {
+  return formatDateOnly(a) === formatDateOnly(b);
 }

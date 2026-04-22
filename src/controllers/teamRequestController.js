@@ -1,3 +1,4 @@
+// teamfinder: students post course teams; others join until max members, then it closes
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk, sendCreated } from '../utils/apiResponse.js';

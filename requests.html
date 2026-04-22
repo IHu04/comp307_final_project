@@ -82,7 +82,7 @@
 
         }
 
-        .d2 {
+        .d4 {
             background-color: lightgray;
             margin-left: 20px;
             border-top-left-radius: 20px;
@@ -91,7 +91,7 @@
         }
 
 
-        .dashboard div:not(.d2, .okay, .pic):hover {
+        .dashboard div:not(.d4, .okay, .pic):hover {
             background-color: #f6f6f6;
             border-top-left-radius: 20px;
             border-bottom-left-radius: 20px;
@@ -188,7 +188,6 @@
             padding: 10px 10px 10px 10px;
             font-family: 'Times New Roman', Times, serif;
             color: white;
-            transition: 0.2s;
         }
 
         #yikes {
@@ -224,7 +223,9 @@
        
         }
 
+
         .view {
+
             background-color: white;
             padding-left: 15px;
             border-radius: 15px;
@@ -234,6 +235,7 @@
         }
 
         .row {
+    
             display: grid;
             grid-template-columns: 2fr 2fr 2fr 1fr 2fr;
             padding: 10px;
@@ -256,29 +258,10 @@
             color:#ED1B2F;
         }
 
-        .m {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            
-        }
 
-        .m button {
-            margin-left: auto;
-            padding: 7px 12px 7px 12px;
-            margin-right: 10px;
-            margin-bottom: -15px;
-            cursor: pointer;
-            border: 1px solid #1e78de;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            color: #1e78de;
-            border-radius: 5px;
-        }
 
-        .m button:hover {
-            border: 1px solid #ED1B2F;
-            color:#ED1B2F;
-        }
+
+ 
 
   
 
@@ -316,17 +299,17 @@
 
                         <div class="d2">
                             <img src="images/Dash.png" />
-                            <a href="view.html">Dashboard</a>
+                            <a href="owner-view.html">Dashboard</a>
                         </div>
 
                         <div class="d3">
                             <img src="images/Book.png" />
-                            <a href="book.html">Book Appointment</a>
+                            <a href="owner-book.html">Create Slots</a>
                         </div>
 
                         <div class="d4">
                             <img src="images/finder.png" />
-                            <a href="teamup.html">TeamFinder</a>
+                            <a href="requests.html">Booking Requests</a>
                         </div>
 
                         <div class="d5">
@@ -353,22 +336,15 @@
                 <div class="main">
 
                     <div class="name"> 
-                        <h2>My Appointments</h2>
-                        <p>View your meetings, group meetings, and reserved office hours slots here. </p>
+                        <h2>Requested Booking List</h2>
+                        <p>View your meeting requests here. Accept or decline them as needed.</p>
 
-                        <div class="m">
-                            <a href="/api/appointments/export" style="text-decoration:none">
-                                <button type="button">Export to Calendar</button>
-                            </a>
-                        </div>
      
                     </div>
 
                     <div class="view">
                         <div class="ok1">
-                            <button class="button active" id="yikes" onclick="openTab('meetings', this)">Meetings</button>
-                            <button class="button" onclick="openTab('group', this)">Group Meetings</button>
-                            <button class="button" onclick="openTab('office', this)">Reserved Office Hours</button>
+                            <button class="button active" id="yikes">Requested Bookings</button>
                         </div>
 
                         <div id="meetings" class="tab">
@@ -381,37 +357,10 @@
                                 <div>Actions</div>
                             </div>
 
-                            <div id="meetingsList"></div>
+                            <div id="requestedList"></div>
 
 
                         </div>
-
-                        <div id="group" class="tab" style="display:none">
-
-                            <div class="row header">
-                                <div>Date</div>
-                                <div>Time</div>
-                                <div>Meeting With</div>
-                                <div>Location</div>
-                                <div>Actions</div>
-                            </div>
-
-                            <div id="groupList"></div>
-
-                        </div>
-
-                        <div id="office" class="tab" style="display:none">
-                            <div class="row header">
-                                <div>Date</div>
-                                <div>Time</div>
-                                <div>Meeting With</div>
-                                <div>Location</div>
-                                <div>Actions</div>
-                            </div>
-
-                            <div id="officeList"></div>
-                        </div>
-                    </div>
 
                 </div>
 
@@ -433,116 +382,97 @@
             document.querySelector(".main").classList.toggle("shifted");
         }
 
-        function openTab(cityName, btn) {
-            var i;
-            var x = document.getElementsByClassName("tab");
-            for (i = 0; i < x.length; i++) {
-                x[i].style.display = "none";
-            }
-            document.getElementById(cityName).style.display = "block";
 
-            var buttons = document.getElementsByClassName("button");
-            for (i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove("active");
-            }
-            btn.classList.add("active");
+        async function loadRequests() {
+            const container = document.getElementById("requestedList");
+            container.innerHTML = "";
 
-            renderTab(cityName);
-        }
-
-        // Backend-delivered appointments, bucketed by slot_type.
-        // Fetched by `loadAppointments()`.
-        const buckets = { meetings: [], group: [], office: [] };
-
-        async function loadAppointments() {
-            const { appointments } = await API.get('/dashboard');
-            buckets.meetings = [];
-            buckets.group = [];
-            buckets.office = [];
-
-            appointments.forEach(a => {
-                // Only show booked or active — skip drafts (students can't see draft anyway)
-                const entry = {
-                    slotId: a.slotId,
-                    date: a.date,
-                    time: `${a.startTime.slice(0,5)}-${a.endTime.slice(0,5)}`,
-                    with: a.otherParty ? a.otherParty.name : '—',
-                    email: a.otherParty ? a.otherParty.email : '',
-                    where: ' ',
-                    canCancel: a.canCancel,
-                    type: a.slotType,
-                };
-                if (a.slotType === 'group_meeting') {
-                    buckets.group.push(entry);
-                } else if (a.slotType === 'meeting_request') {
-                    buckets.meetings.push(entry);
-                } else {
-                    buckets.office.push(entry);
-                }
-            });
-
-            renderTab('meetings');
-            renderTab('group');
-            renderTab('office');
-        }
-
-        function renderTab(type) {
-            const container = document.getElementById(type + 'List');
-            container.innerHTML = '';
-
-            const items = buckets[type] || [];
-            if (!items.length) {
-                container.innerHTML =
-                    '<div style="padding:12px;color:#888;font-size:14px">No appointments in this category yet.</div>';
+            let requests = [];
+            try {
+                const data = await API.get('/meeting-requests/received?status=pending');
+                requests = data.requests || data || [];
+            } catch (e) {
+                container.innerHTML = `<div style="padding:12px;color:#c00">Failed to load requests: ${e.message}</div>`;
                 return;
             }
 
-            items.forEach(m => {
-                const row = document.createElement('div');
-                row.className = 'row';
+            if (!requests.length) {
+                container.innerHTML = '<div style="padding:12px;color:#888;font-size:14px">No pending requests.</div>';
+                return;
+            }
 
-                const actions = [];
-                if (m.email) actions.push(`<button onclick="sendEmail('${m.email}')">Email</button>`);
-                if (m.canCancel) actions.push(`<button onclick="cancelBooking(${m.slotId})">Cancel</button>`);
+            requests.forEach(r => {
+                const row = document.createElement("div");
+                row.className = "row";
+                const requester = r.requester || {};
+                const name = (requester.firstName || '') + ' ' + (requester.lastName || '');
+                const email = requester.email || '';
+                const created = r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '';
 
                 row.innerHTML = `
-                    <div>${m.date}</div>
-                    <div>${m.time}</div>
-                    <div>${m.with}</div>
-                    <div>${m.where}</div>
-                    <div>${actions.join('')}</div>
+                    <div>${created}</div>
+                    <div>${(r.message || '').replace(/</g,'&lt;').slice(0,60)}</div>
+                    <div>${name.trim() || email}</div>
+                    <div>${email}</div>
+                    <div>
+                        <button onclick="acceptRequest(${r.id}, '${email}')">Accept</button>
+                        <button onclick="declineRequest(${r.id})">Decline</button>
+                    </div>
                 `;
+
                 container.appendChild(row);
             });
         }
 
-        function sendEmail(email) {
-            window.location.href = `mailto:${email}`;
+        async function acceptRequest(id, email) {
+            const date = prompt("Meeting date (YYYY-MM-DD):");
+            if (!date) return;
+            const startTime = prompt("Start time (HH:MM, 24h):");
+            if (!startTime) return;
+            const endTime = prompt("End time (HH:MM, 24h):");
+            if (!endTime) return;
+
+            try {
+                const res = await API.patch(`/meeting-requests/${id}`, {
+                    status: 'accepted', date, startTime, endTime,
+                });
+                if (res && res.notifyRequesterMailto) {
+                    window.open(res.notifyRequesterMailto, '_blank');
+                }
+                await loadRequests();
+            } catch (e) {
+                alert('Could not accept: ' + e.message);
+            }
         }
 
-        async function cancelBooking(slotId) {
-            if (!confirm('Cancel this booking?')) return;
+        async function declineRequest(id) {
+            if (!confirm('Decline this request?')) return;
             try {
-                const data = await API.del(`/slots/${slotId}/book`);
-                if (data && data.notifyOwnerMailto) {
-                    window.open(data.notifyOwnerMailto, '_blank');
+                const res = await API.patch(`/meeting-requests/${id}`, { status: 'declined' });
+                if (res && res.notifyRequesterMailto) {
+                    window.open(res.notifyRequesterMailto, '_blank');
                 }
-                await loadAppointments();
+                await loadRequests();
             } catch (e) {
-                alert('Could not cancel: ' + e.message);
+                alert('Could not decline: ' + e.message);
             }
         }
 
         async function init() {
-            const user = await API.requireAuth();
+            const user = await API.requireOwner();
             if (!user) return;
-            if (user.isOwner) { window.location.href = 'owner-view.html'; return; }
             document.getElementById('welcome-h').textContent =
                 `Welcome, ${user.firstName || 'user'}!`;
-            await loadAppointments();
+            await loadRequests();
         }
 
         init();
+
+
+
+
+
+
     </script>
 </body>
 </html>

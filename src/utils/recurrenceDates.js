@@ -1,31 +1,21 @@
+// generates calendar dates for a weekly recurring slot pattern
+// day-of-week convention used by the recurrence_patterns table: 0=monday, 1=tuesday ... 6=sunday
+// this differs from iso 8601 (1=mon..7=sun) and js Date.getDay() (0=sun..6=sat)
+// luxon uses 1=mon..7=sun internally, so we add 1 when converting
 import { DateTime } from 'luxon';
 
-/**
- * day_of_week convention used throughout this app and in recurrence_patterns.day_of_week:
- *   0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday,
- *   4 = Friday, 5 = Saturday, 6 = Sunday
- *
- * This differs from ISO 8601 (which uses 1=Mon..7=Sun) and JS Date.getDay() (0=Sun..6=Sat).
- * Luxon uses 1=Mon..7=Sun internally; we add 1 when converting (luxonDow = dow0 + 1).
- */
-
-/**
- * First calendar date on or after startDate matching weekday.
- * @param {string} startDateStr - YYYY-MM-DD
- * @param {number} dow0 - 0=Monday..6=Sunday (app convention, see above)
- */
+// returns the first calendar date on or after startDate that falls on the given weekday (0=mon..6=sun)
 export function firstOccurrenceOnOrAfter(startDateStr, dow0) {
   const dt = DateTime.fromISO(String(startDateStr).slice(0, 10), {
     zone: 'America/Montreal',
   }).startOf('day');
-  const luxonDow = dow0 + 1; // Luxon: Monday = 1 .. Sunday = 7
+  const luxonDow = dow0 + 1; // luxon: monday=1 .. sunday=7
   const delta = (luxonDow - dt.weekday + 7) % 7;
   return dt.plus({ days: delta });
 }
 
-/**
- * List of YYYY-MM-DD for each week (numWeeks occurrences).
- */
+// returns an array of YYYY-MM-DD strings for numWeeks consecutive weekly occurrences
+// starting from the first matching weekday on or after startDate
 export function weeklyOccurrenceDates(startDateStr, dow0, numWeeks) {
   const first = firstOccurrenceOnOrAfter(startDateStr, dow0);
   const dates = [];

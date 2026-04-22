@@ -1,3 +1,4 @@
+// public owner discovery: owners with active slots, one owner's slots, invite token lookup
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk } from '../utils/apiResponse.js';

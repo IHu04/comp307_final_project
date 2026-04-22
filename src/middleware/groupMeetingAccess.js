@@ -1,7 +1,7 @@
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-/** Meeting exists and user is owner or listed participant */
+// meeting exists and user is owner or listed participant
 export const canViewGroupMeeting = asyncHandler(async (req, res, next) => {
   const userId = req.session.userId;
   const meetingId = req.params.id;

@@ -188,7 +188,6 @@
             padding: 10px 10px 10px 10px;
             font-family: 'Times New Roman', Times, serif;
             color: white;
-            transition: 0.2s;
         }
 
         #yikes {
@@ -280,6 +279,8 @@
             color:#ED1B2F;
         }
 
+ 
+
   
 
 
@@ -316,17 +317,17 @@
 
                         <div class="d2">
                             <img src="images/Dash.png" />
-                            <a href="view.html">Dashboard</a>
+                            <a href="owner-view.html">Dashboard</a>
                         </div>
 
                         <div class="d3">
                             <img src="images/Book.png" />
-                            <a href="book.html">Book Appointment</a>
+                            <a href="owner-book.html">Create Slots</a>
                         </div>
 
                         <div class="d4">
                             <img src="images/finder.png" />
-                            <a href="teamup.html">TeamFinder</a>
+                            <a href="requests.html">Booking Requests</a>
                         </div>
 
                         <div class="d5">
@@ -354,7 +355,7 @@
 
                     <div class="name"> 
                         <h2>My Appointments</h2>
-                        <p>View your meetings, group meetings, and reserved office hours slots here. </p>
+                        <p>View your upcoming appointments, active, and inactive slots here. Activate slots so that students can book them. </p>
 
                         <div class="m">
                             <a href="/api/appointments/export" style="text-decoration:none">
@@ -367,8 +368,8 @@
                     <div class="view">
                         <div class="ok1">
                             <button class="button active" id="yikes" onclick="openTab('meetings', this)">Meetings</button>
-                            <button class="button" onclick="openTab('group', this)">Group Meetings</button>
-                            <button class="button" onclick="openTab('office', this)">Reserved Office Hours</button>
+                            <button class="button" onclick="openTab('active', this)">Active Slots</button>
+                            <button class="button" onclick="openTab('inactive', this)">Inactive Slots</button>
                         </div>
 
                         <div id="meetings" class="tab">
@@ -386,7 +387,7 @@
 
                         </div>
 
-                        <div id="group" class="tab" style="display:none">
+                        <div id="active" class="tab" style="display:none">
 
                             <div class="row header">
                                 <div>Date</div>
@@ -396,22 +397,21 @@
                                 <div>Actions</div>
                             </div>
 
-                            <div id="groupList"></div>
+                            <div id="activeList"></div>
 
                         </div>
 
-                        <div id="office" class="tab" style="display:none">
+                        <div id="inactive" class="tab" style="display:none">
                             <div class="row header">
                                 <div>Date</div>
                                 <div>Time</div>
                                 <div>Meeting With</div>
                                 <div>Location</div>
                                 <div>Actions</div>
-                            </div>
-
-                            <div id="officeList"></div>
-                        </div>
                     </div>
+
+                            <div id="inactiveList"></div>
+                        </div>
 
                 </div>
 
@@ -450,40 +450,33 @@
             renderTab(cityName);
         }
 
-        // Backend-delivered appointments, bucketed by slot_type.
-        // Fetched by `loadAppointments()`.
-        const buckets = { meetings: [], group: [], office: [] };
+        let currentUser = null;
+        const buckets = { meetings: [], active: [], inactive: [] };
 
-        async function loadAppointments() {
+        async function loadAll() {
             const { appointments } = await API.get('/dashboard');
             buckets.meetings = [];
-            buckets.group = [];
-            buckets.office = [];
+            buckets.active = [];
+            buckets.inactive = [];
 
             appointments.forEach(a => {
-                // Only show booked or active — skip drafts (students can't see draft anyway)
                 const entry = {
                     slotId: a.slotId,
                     date: a.date,
                     time: `${a.startTime.slice(0,5)}-${a.endTime.slice(0,5)}`,
-                    with: a.otherParty ? a.otherParty.name : '—',
+                    with: a.otherParty ? a.otherParty.name : '',
                     email: a.otherParty ? a.otherParty.email : '',
                     where: ' ',
-                    canCancel: a.canCancel,
-                    type: a.slotType,
+                    status: a.status,
                 };
-                if (a.slotType === 'group_meeting') {
-                    buckets.group.push(entry);
-                } else if (a.slotType === 'meeting_request') {
-                    buckets.meetings.push(entry);
-                } else {
-                    buckets.office.push(entry);
-                }
+                if (a.status === 'booked') buckets.meetings.push(entry);
+                else if (a.status === 'active') buckets.active.push(entry);
+                else if (a.status === 'draft')  buckets.inactive.push(entry);
             });
 
             renderTab('meetings');
-            renderTab('group');
-            renderTab('office');
+            renderTab('active');
+            renderTab('inactive');
         }
 
         function renderTab(type) {
@@ -493,24 +486,40 @@
             const items = buckets[type] || [];
             if (!items.length) {
                 container.innerHTML =
-                    '<div style="padding:12px;color:#888;font-size:14px">No appointments in this category yet.</div>';
+                    '<div style="padding:12px;color:#888;font-size:14px">Nothing here yet.</div>';
                 return;
             }
 
             items.forEach(m => {
                 const row = document.createElement('div');
                 row.className = 'row';
-
-                const actions = [];
-                if (m.email) actions.push(`<button onclick="sendEmail('${m.email}')">Email</button>`);
-                if (m.canCancel) actions.push(`<button onclick="cancelBooking(${m.slotId})">Cancel</button>`);
-
+                let actions = '';
+                if (type === 'inactive') {
+                    actions = `
+                        <button onclick="activateSlot(${m.slotId})">Activate</button>
+                        <button onclick="deleteSlot(${m.slotId})">Delete</button>
+                    `;
+                }
+                if (type === 'meetings') {
+                    actions = `
+                        ${m.email ? `<button onclick="sendEmail('${m.email}')">Email</button>` : ''}
+                        <button onclick="showInvite()">Get URL</button>
+                        <button onclick="deleteSlot(${m.slotId})">Cancel</button>
+                    `;
+                }
+                if (type === 'active') {
+                    actions = `
+                        <button onclick="showInvite()">Get URL</button>
+                        <button onclick="deactivateSlot(${m.slotId})">Deactivate</button>
+                        <button onclick="deleteSlot(${m.slotId})">Delete</button>
+                    `;
+                }
                 row.innerHTML = `
                     <div>${m.date}</div>
                     <div>${m.time}</div>
                     <div>${m.with}</div>
                     <div>${m.where}</div>
-                    <div>${actions.join('')}</div>
+                    <div>${actions}</div>
                 `;
                 container.appendChild(row);
             });
@@ -520,26 +529,42 @@
             window.location.href = `mailto:${email}`;
         }
 
-        async function cancelBooking(slotId) {
-            if (!confirm('Cancel this booking?')) return;
+        async function activateSlot(id) {
+            try { await API.patch(`/slots/${id}/activate`); await loadAll(); }
+            catch (e) { alert('Could not activate: ' + e.message); }
+        }
+
+        async function deactivateSlot(id) {
+            try { await API.patch(`/slots/${id}/deactivate`); await loadAll(); }
+            catch (e) { alert('Could not deactivate: ' + e.message); }
+        }
+
+        async function deleteSlot(id) {
+            if (!confirm('Delete this slot?')) return;
             try {
-                const data = await API.del(`/slots/${slotId}/book`);
-                if (data && data.notifyOwnerMailto) {
-                    window.open(data.notifyOwnerMailto, '_blank');
-                }
-                await loadAppointments();
-            } catch (e) {
-                alert('Could not cancel: ' + e.message);
+                const data = await API.del(`/slots/${id}`);
+                if (data && data.cancelMailto) window.open(data.cancelMailto, '_blank');
+                await loadAll();
+            } catch (e) { alert('Could not delete: ' + e.message); }
+        }
+
+        // Owners have a shareable invite token. Copy the invite URL to clipboard.
+        function showInvite() {
+            if (!currentUser || !currentUser.inviteToken) {
+                alert('No invite URL available.');
+                return;
             }
+            const url = `${window.location.origin}/book.html?invite=${currentUser.inviteToken}`;
+            navigator.clipboard?.writeText(url);
+            prompt('Share this URL with students:', url);
         }
 
         async function init() {
-            const user = await API.requireAuth();
-            if (!user) return;
-            if (user.isOwner) { window.location.href = 'owner-view.html'; return; }
+            currentUser = await API.requireOwner();
+            if (!currentUser) return;
             document.getElementById('welcome-h').textContent =
-                `Welcome, ${user.firstName || 'user'}!`;
-            await loadAppointments();
+                `Welcome, ${currentUser.firstName || 'user'}!`;
+            await loadAll();
         }
 
         init();

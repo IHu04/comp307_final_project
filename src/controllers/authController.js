@@ -1,3 +1,6 @@
+// register, login, logout, session helpers, password change
+// on login or register: regenerate session to avoid fixation, then store user id
+// on logout: destroy session and clear the cookie
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcrypt';
 import { pool } from '../config/db.js';
@@ -116,6 +119,45 @@ export function logout(req, res, next) {
     res.status(200).json({ success: true, message: 'Logged out' });
   });
 }
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const userId = req.session.userId;
+  const currentPassword = req.body.currentPassword;
+  const newPassword = req.body.newPassword;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({
+      success: false,
+      message: 'currentPassword and newPassword are required',
+    });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(422).json({
+      success: false,
+      message: 'New password must be at least 8 characters',
+    });
+  }
+
+  const [rows] = await pool.query(
+    'SELECT id, password_hash FROM users WHERE id = ? LIMIT 1',
+    [userId]
+  );
+
+  if (!rows.length) {
+    return res.status(401).json({ success: false, message: 'Not authenticated' });
+  }
+
+  const match = await bcrypt.compare(currentPassword, rows[0].password_hash);
+  if (!match) {
+    return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+  }
+
+  const newHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, userId]);
+
+  sendOk(res, {}, 200, 'Password updated');
+});
 
 export const me = asyncHandler(async (req, res) => {
   const userId = req.session.userId;

@@ -1,3 +1,6 @@
+// owner side office hour slots: draft then active then booked
+// draft is hidden from students; active is bookable; booked is reserved
+// overlap checks use transactions and select for update to avoid double booking
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk, sendCreated } from '../utils/apiResponse.js';

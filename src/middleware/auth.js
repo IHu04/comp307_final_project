@@ -1,7 +1,7 @@
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-// Tables where "ownership" means this column equals the logged-in user's id
+// map table name to the column that must equal the logged in user id for ownership checks
 const RESOURCE_OWNER_COLUMN = {
   booking_slots: 'owner_id',
   recurrence_patterns: 'owner_id',

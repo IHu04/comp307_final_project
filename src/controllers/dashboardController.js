@@ -1,3 +1,10 @@
+// dashboard json by role and ics export for the current user
+// get /api/dashboard: owner sees their slots and pending items; student sees bookings and groups
+// get /api/appointments/export: streams an ics file for calendar apps
+import { webcrypto } from 'crypto';
+// ical-generator expects crypto.randomUUID; node 18 esm may not expose crypto as a bare global
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
+
 import ical from 'ical-generator';
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -115,9 +122,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
     return;
   }
 
-  // Include slots directly booked by this user AND group_meeting slots where
-  // the user is a participant (booked_by is NULL on those because the slot belongs
-  // to the owner, not any single attendee).
+  // student view: own bookings plus group meeting slots where they are a participant (booked_by null on those)
   const [slots] = await pool.query(
     `SELECT s.id, s.date, s.start_time, s.end_time, s.status,
             o.first_name AS owner_fn, o.last_name AS owner_ln, o.email AS owner_email

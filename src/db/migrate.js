@@ -6,7 +6,7 @@ import { pool } from '../config/db.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const folder = path.join(here, 'migrations');
 
-// One migration file can have several statements; mysql2 runs one query() at a time.
+// split one sql file into statements because mysql2 runs one query per call
 function sqlStatements(fileContents) {
   const withoutLineComments = fileContents.replace(/^\s*--.*$/gm, '');
   return withoutLineComments
@@ -36,11 +36,7 @@ async function alreadyRan() {
   return names;
 }
 
-/**
- * Runs any pending .sql files in src/db/migrations/ (sorted by filename).
- * Does not close the pool.
- * @returns {Promise<number>} number of migration files applied this run
- */
+// apply pending .sql files in order; leaves the pool open; returns how many files ran
 export async function runMigration() {
   await setupTrackingTable();
   const done = await alreadyRan();

@@ -1,262 +1,579 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Book a Slot</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-<style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #d9d9d9;
-}
-
-.topnav {
-    height: 80px;
-    display: flex;
-    align-items: center;
-    background: #e2291e;
-    padding: 0 20px;
-    color: white;
-}
-
-.nav-right {
-    margin-left: auto;
-}
-
-.nav-right a {
-    color: white;
-    text-decoration: none;
-    margin-left: 20px;
-    font-size: 16px;
-}
-
-/* Breadcrumb */
-.breadcrumb {
-    padding: 14px 20px;
-    font-size: 14px;
-    color: #555;
-}
-
-.breadcrumb span {
-    color: #e2291e;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.page-title {
-    padding: 0 20px 10px;
-    margin: 0;
-}
-
-/* Grid of cards */
-#results {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px;
-}
-
-/* Owner card */
-.owner-card {
-    background: white;
-    width: 240px;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.owner-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.2);
-}
-
-.owner-card .avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: #e2291e;
-    color: white;
-    font-size: 22px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-}
-
-.owner-card h3 {
-    margin: 0 0 4px;
-    font-size: 16px;
-}
-
-.owner-card .email {
-    font-size: 12px;
-    color: gray;
-    margin-bottom: 10px;
-}
-
-.owner-card .slot-count {
-    font-size: 13px;
-    color: green;
-    font-weight: bold;
-}
-
-/* Slot card */
-.slot-card {
-    background: white;
-    width: 240px;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-button {
-    margin-top: 12px;
-    width: 100%;
-    padding: 10px;
-    background: #e2291e;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-button:hover {
-    background: #b22d0a;
-}
-</style>
+    <title>Book Appointment</title>
 </head>
+<Style>
+    body {
+        margin: 0;
+        background-color: lightgray;
+    }
 
+    .container {
+
+    }
+
+    .dashboard {
+            width: 270px;
+            height: 100vh;
+            border-top-right-radius: 35px;
+            border-bottom-right-radius: 35px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+
+        .slide button {
+            position: absolute;
+            left: 270px;
+            top: 5px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+
+
+
+        .slide {
+            width: 270px;
+      
+            position: fixed;
+            left: 0;
+            transition: transform 0.3s ease-in-out;
+            
+        }
+
+        .slide.hidden {
+            transform: translateX(-270px);
+        }
+
+
+        .dashboard div {
+            display: flex;
+            align-items: center;  
+            margin-left: 20px;
+        }
+
+
+
+        .d1 {
+            padding-top: 30px;
+        }
+
+        .dashboard img {
+            width:50px;
+            height:auto;
+            margin-left: 15px;
+        }
+
+        .dashboard a {
+            text-decoration: none;
+            color: black;
+            font-size: 20px;
+
+        }
+
+        .d3 {
+            background-color: lightgray;
+            margin-left: 20px;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+        }
+
+
+        .dashboard div:not(.d3, .okay, .pic):hover {
+            background-color: #f6f6f6;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+        }
+
+        .okay {
+            border-top-right-radius: 20px;
+            gap: 10px;
+            padding-top: 50px;
+            padding-bottom: 10px;
+            padding-left: 20px;
+        }
+
+        .pic {
+            margin-top: auto;
+            padding-bottom: 100px;
+        }
+
+        .pic img {
+            width: 60px;
+            height: auto;
+            display: block;
+        
+            padding-right: 18px;
+        }
+
+        .topnav {
+            display: flex;
+            z-index: 9999;
+            top:0;
+            position: sticky;
+            height: 75px;
+            padding-right: 20px;
+            align-items: center;
+            background-color: #ED1B2F;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        
+        }
+
+        .right {
+            display: flex;
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+
+        .right a{
+            text-decoration: none;
+            color: white;
+            padding: 24px 12px;
+            font-size: 18px;
+            
+        }
+
+        .right a:hover {
+            text-decoration: underline;
+        }
+
+        .left {
+            display: flex;
+            padding-left: 20px;
+           
+        }
+
+        .left h3{
+            
+            color: white;
+            font-size: 30px;
+        }
+
+        .ok {
+            display: flex;
+        }
+
+        .main {
+            margin-left: 310px;
+            padding: 30px;
+            width: 100vw;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main.shifted {
+            margin-left: 0;
+        }
+
+        .main p {
+            margin-top: -10px;
+            color: #8f8f8f;
+        }
+
+        .rectangle {
+            display: flex;
+            width: fit-content;
+            padding: 15px;
+            background: white;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 5px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            width: 80%;
+            flex: 1;
+
+        }
+
+        .search {
+            flex: 1;
+            display: flex;
+        }
+
+        .search img {
+            color: lightgray;
+        }
+
+
+        .search input[type="text"] {
+            
+            width: 98%;
+            height: 20px;
+            padding: 7px;
+            background: #f6f6f6;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #searchform {
+            display: flex;
+            gap: 10px;
+            width: 100%
+        }
+
+        #searchform input[type="submit"] {
+           padding: 7px 12px 7px 12px;
+            cursor: pointer;
+            border: 1px solid #1e78de;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #1e78de;
+            border-radius: 5px;
+        }
+
+        #searchform input[type="submit"]:hover {
+            border: 1px solid #ED1B2F;
+            color:#ED1B2F;
+        }
+
+        #results {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 83%;
+
+        }
+
+        .result-card {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            padding-left: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background-color: white;
+            border-radius: 5px;
+        }
+
+        .result-card:hover {
+            background-color: #e6e6e6
+        }
+
+        .show {
+            margin-top: 20px;
+        }
+
+        .show button {
+            padding: 7px 12px 7px 12px;
+            cursor: pointer;
+            border: 1px solid #1e78de;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #1e78de;
+            border-radius: 5px;
+        }
+
+        .show button:hover {
+            border: 1px solid #ED1B2F;
+            color:#ED1B2F;
+        }
+
+        .content {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            padding-right: 20px;
+        }
+
+        .actions button {
+            padding: 7px 12px 7px 12px;
+            cursor: pointer;
+            border: 1px solid #1e78de;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            color: #1e78de;
+            border-radius: 5px;
+        }
+
+        .actions button:hover {
+            border: 1px solid #ED1B2F;
+            color:#ED1B2F;
+        }
+        
+
+     
+
+
+ 
+
+</Style>
 <body>
+   <div class="container">
 
-<div class="topnav">
-    <div><b>McGill Bookings</b></div>
-    <div class="nav-right">
-        <a href="book.html">Book</a>
-        <a href="view.html">My Bookings</a>
-        <a href="teamup.html">Team Up</a>
-        <a href="#" onclick="API.logout()">Logout</a>
+        <div class="topnav">
+
+            <div class="left">
+                <h3>McGill Bookings</h3>
+            </div>
+
+            <div class="right">
+                <a href="homepage.html">Home</a>
+                <a href="#">Contact Us</a>
+                <a href="account.html">My Account</a>
+            </div>
+
+        </div>
+        <br>
+
+        <div class="ok">
+            <div class="slide" id="slide1">
+
+                    <div class="dashboard">
+
+                        <div class="okay">
+                            <h2 id="welcome-h">Welcome!</h2>
+                        </div>
+
+                        <div class="d2">
+                            <img src="images/Dash.png" />
+                            <a href="view.html">Dashboard</a>
+                        </div>
+
+                        <div class="d3">
+                            <img src="images/Book.png" />
+                            <a href="book.html">Book Appointment</a>
+                        </div>
+
+                        <div class="d4">
+                            <img src="images/finder.png" />
+                            <a href="teamup.html">TeamFinder</a>
+                        </div>
+
+                        <div class="d5">
+                            <img src="images/account.png" />
+                            <a href="homepage.html">Home</a>
+                        </div>
+
+                        <div class="d6">
+                            <img src="images/logout.png" />
+                            <a href="#" onclick="API.logout();return false;">Logout</a>
+                        </div>
+
+                        <div class="pic">
+                            <img src="images/logo-ssmu.svg" />
+                        </div>
+                    
+                    </div>
+
+                    <button onclick="toggleDash()"><i class="fa fa-bars"></i></button>
+
+                    
+                </div>
+
+                <div class="main">
+
+                    <div class="name"> 
+                        <h2>Book an Appointment</h2>
+                        <p>Request a meeting with professors and TAs, schedule a group meeting, and reserve office hours slots here. </p>
+
+     
+                    </div>
+
+                    <div class="view">
+
+                        <div class="rectangle">
+                            <form id="searchform">
+                                <div class="search">
+                                    <input type="text" name="educatorname" id="searchInput" placeholder= "Search professors or courses">
+                                </div>
+                                <input type="submit" value="Search">
+                            </form>
+                        </div>
+
+                        <div class="show">
+                            <button onclick="showAll()">Show All</button>
+                        </div>
+
+                        <div id="results">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+        </div>
+
+        
+
+
     </div>
-</div>
 
-<div class="breadcrumb" id="breadcrumb"></div>
-<h2 class="page-title" id="page-title">Browse Professors &amp; TAs</h2>
-<div id="results"></div>
 
-<script src="shared.js"></script>
-<script>
 
-let currentOwner = null;
+   <script src="shared.js"></script>
+   <script>
+        let allOwners = [];
 
-async function init() {
-  const user = await API.requireAuth();
-  if (!user) return;
-  showOwners();
-}
+        function toggleDash() {
+            document.getElementById("slide1").classList.toggle("hidden");
+            document.querySelector(".main").classList.toggle("shifted");
+        }
 
-/* ── STEP 1: List all owners ─────────────────────────────── */
-async function showOwners() {
-  currentOwner = null;
-  document.getElementById('page-title').textContent = 'Browse Professors & TAs';
-  document.getElementById('breadcrumb').innerHTML = '';
+        async function init() {
+            const user = await API.requireAuth();
+            if (!user) return;
+            if (user.isOwner) { window.location.href = 'owner-view.html'; return; }
+            document.getElementById('welcome-h').textContent =
+                `Welcome, ${user.firstName || 'user'}!`;
 
-  const results = document.getElementById('results');
-  results.innerHTML = '<p>Loading...</p>';
+            // Handle invite URL: book.html?invite=<token>
+            const inviteToken = new URLSearchParams(window.location.search).get('invite');
+            if (inviteToken) {
+                try {
+                    const data = await API.get(`/invite/${inviteToken}`);
+                    const owner = data.owner;
+                    const slots = data.slots || [];
+                    const ownerName = `${owner.firstName} ${owner.lastName}`;
+                    document.querySelector('.name h2').textContent = `Book with ${ownerName}`;
+                    document.querySelector('.name p').textContent =
+                        `Showing available slots for ${ownerName}. Use the link below to return to all professors.`;
+                    const viewDiv = document.querySelector('.view');
+                    viewDiv.innerHTML = `
+                        <div style="padding:12px 15px;border-bottom:1px solid #ddd;font-size:13px;color:#888">
+                            <a href="book.html" style="color:#ED1B2F;text-decoration:none">← View all professors</a>
+                            &nbsp;·&nbsp; <b>${ownerName}</b>
+                        </div>
+                        ${slots.length ? slots.map(s => `
+                            <div style="display:flex;justify-content:space-between;align-items:center;
+                                        background:#f6f6f6;padding:8px 12px;margin:6px 10px;border-radius:5px;font-size:14px">
+                                <span><b>${s.date}</b> &middot; ${s.startTime.slice(0,5)}–${s.endTime.slice(0,5)}</span>
+                                <button onclick="bookSlot(${s.id},'${s.date}','${s.startTime}','${s.endTime}')"
+                                        style="width:auto;padding:5px 14px;border:1px solid #1e78de;
+                                               color:#1e78de;border-radius:5px;background:white;cursor:pointer">
+                                    Book
+                                </button>
+                            </div>`).join('')
+                        : '<p style="padding:12px;color:#888">No available slots right now.</p>'}
+                    `;
+                    return;
+                } catch (e) {
+                    // Invalid token — fall through and show all owners
+                }
+            }
 
-  try {
-    const { owners } = await API.get('/owners');
+            try {
+                const { owners } = await API.get('/owners');
+                allOwners = owners || [];
+                renderOwners(allOwners);
+            } catch (e) {
+                document.getElementById('results').innerHTML =
+                    `<p style="color:#b22d0a">Could not load owners: ${e.message}</p>`;
+            }
+        }
 
-    results.innerHTML = '';
+        function renderOwners(list) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
 
-    if (!owners.length) {
-      results.innerHTML = '<p>No professors or TAs have active slots right now.</p>';
-      return;
-    }
+            if (!list.length) {
+                resultsDiv.innerHTML = '<p>No owners found.</p>';
+                return;
+            }
 
-    owners.forEach((owner) => {
-      const initials = (owner.firstName[0] + owner.lastName[0]).toUpperCase();
+            list.forEach(o => {
+                const div = document.createElement('div');
+                div.className = 'result-card';
+                const name = `${o.firstName} ${o.lastName}`;
+                div.innerHTML = `
+                    <div class="content">
+                        <h4>${name} <span style="font-weight:normal;color:#888;font-size:13px">— ${o.activeSlotCount} active slot(s)</span></h4>
+                        <div class="actions">
+                            <button onclick="requestMeeting(${o.id}, '${encodeURIComponent(name)}')">Request Meeting</button>
+                            <button onclick="viewSlots(${o.id}, this)">View Slots</button>
+                            <button onclick="emailOwner('${o.email}')">Email</button>
+                        </div>
+                    </div>
+                    <div class="slots-panel" id="slots-${o.id}" style="margin-top:10px"></div>
+                `;
+                resultsDiv.appendChild(div);
+            });
+        }
 
-      const card = document.createElement('div');
-      card.className = 'owner-card';
-      card.innerHTML = `
-        <div class="avatar">${initials}</div>
-        <h3>${owner.firstName} ${owner.lastName}</h3>
-        <div class="email">${owner.email}</div>
-        <div class="slot-count">${owner.activeSlotCount} slot${owner.activeSlotCount !== 1 ? 's' : ''} available</div>
-      `;
-      card.onclick = () => showSlots(owner);
-      results.appendChild(card);
-    });
+        // Search by name or email
+        document.getElementById('searchform').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!q) { renderOwners(allOwners); return; }
+            renderOwners(
+                allOwners.filter(o =>
+                    `${o.firstName} ${o.lastName}`.toLowerCase().includes(q) ||
+                    (o.email || '').toLowerCase().includes(q)
+                )
+            );
+        });
 
-  } catch (e) {
-    results.innerHTML = `<p style="color:#e2291e">Error: ${e.message}</p>`;
-  }
-}
+        function showAll() { renderOwners(allOwners); }
 
-/* ── STEP 2: Slots for a chosen owner ────────────────────── */
-async function showSlots(owner) {
-  currentOwner = owner;
+        function requestMeeting(ownerId, nameEnc) {
+            window.location.href = `student-request.html?ownerId=${ownerId}&name=${nameEnc}`;
+        }
 
-  document.getElementById('page-title').textContent =
-    `Available slots — ${owner.firstName} ${owner.lastName}`;
+        function emailOwner(email) {
+            window.location.href = 'mailto:' + email;
+        }
 
-  document.getElementById('breadcrumb').innerHTML =
-    `<span onclick="showOwners()">← Back to list</span>`;
+        // Inline slot viewer toggle
+        async function viewSlots(ownerId, btn) {
+            const panel = document.getElementById(`slots-${ownerId}`);
+            if (panel.dataset.open === '1') {
+                panel.innerHTML = '';
+                panel.dataset.open = '0';
+                return;
+            }
+            panel.innerHTML = '<em style="font-size:13px;color:#888">Loading...</em>';
+            panel.dataset.open = '1';
 
-  const results = document.getElementById('results');
-  results.innerHTML = '<p>Loading slots...</p>';
+            try {
+                const { slots } = await API.get(`/owners/${ownerId}/slots`);
+                if (!slots.length) {
+                    panel.innerHTML = '<em style="font-size:13px;color:#888">No active slots.</em>';
+                    return;
+                }
+                panel.innerHTML = slots.map(s => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;
+                                background:#f6f6f6;padding:8px 12px;margin-bottom:6px;border-radius:5px;font-size:14px">
+                        <span><b>${s.date}</b> &middot; ${s.startTime.slice(0,5)}–${s.endTime.slice(0,5)}</span>
+                        <button onclick="bookSlot(${s.id}, '${s.date}', '${s.startTime}', '${s.endTime}')"
+                                style="padding:5px 10px;border:1px solid #1e78de;color:#1e78de;border-radius:5px;background:white;cursor:pointer">
+                            Book
+                        </button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                panel.innerHTML = `<span style="color:#b22d0a;font-size:13px">Error: ${e.message}</span>`;
+            }
+        }
 
-  try {
-    const { slots } = await API.get(`/owners/${owner.id}/slots`);
+        async function bookSlot(slotId, date, startTime, endTime) {
+            if (!confirm(`Book this slot on ${date} at ${startTime.slice(0,5)}?`)) return;
+            try {
+                const data = await API.post(`/slots/${slotId}/book`);
+                // Notify the owner via mailto
+                if (data && data.notifyOwnerMailto) {
+                    window.open(data.notifyOwnerMailto, '_blank');
+                }
+                alert('Booking confirmed!');
+                window.location.href = 'view.html';
+            } catch (e) {
+                alert('Could not book: ' + e.message);
+            }
+        }
 
-    results.innerHTML = '';
-
-    if (!slots.length) {
-      results.innerHTML = '<p>No available slots for this person right now.</p>';
-      return;
-    }
-
-    slots.forEach((slot) => {
-      const card = document.createElement('div');
-      card.className = 'slot-card';
-      card.innerHTML = `
-        <b>${slot.date}</b><br>
-        🕐 ${slot.startTime.slice(0,5)} – ${slot.endTime.slice(0,5)}<br><br>
-        <span style="color:gray;font-size:13px">${owner.firstName} ${owner.lastName}</span><br>
-        <span style="color:green;font-size:13px">Available 🟢</span>
-      `;
-
-      const btn = document.createElement('button');
-      btn.textContent = 'Book this slot';
-      btn.onclick = () => {
-        sessionStorage.setItem('pendingBooking', JSON.stringify({
-          slotId: slot.id,
-          ownerName: `${owner.firstName} ${owner.lastName}`,
-          ownerEmail: owner.email,
-          date: slot.date,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        }));
-        window.location.href = 'confirm.html';
-      };
-
-      card.appendChild(btn);
-      results.appendChild(card);
-    });
-
-  } catch (e) {
-    results.innerHTML = `<p style="color:#e2291e">Error: ${e.message}</p>`;
-  }
-}
-
-init();
-</script>
-
+        init();
+    </script>
 </body>
 </html>

@@ -1,7 +1,5 @@
-/**
- * Comprehensive API tests: real MySQL + Express (no mocks).
- * Requires .env (DB_*, SESSION_SECRET) and `npm run db:migrate`.
- */
+// integration tests against real mysql and express, no mocks
+// needs .env db settings, session secret, and npm run db:migrate first
 import 'dotenv/config';
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,7 +20,7 @@ function futureSlotDate(daysAhead = 14) {
     .toISODate();
 }
 
-/** Next Monday on/after (today + daysFromNow), ISO date (for recurrence dayOfWeek 0 = Mon). */
+// next monday on or after today plus daysFromNow, iso string; recurrence uses dow 0 = mon
 function nextMondayIso(daysFromNow = 55) {
   let d = DateTime.now()
     .setZone('America/Montreal')
@@ -34,7 +32,7 @@ function nextMondayIso(daysFromNow = 55) {
   return d.toISODate();
 }
 
-describe('McGill Bookings — comprehensive API tests', () => {
+describe('McGill Bookings comprehensive API tests', () => {
   const runId = `${Date.now()}_${process.pid}`;
   const ownerEmail = `own_${runId}@mcgill.ca`;
   const studentEmail = `stu_${runId}@mail.mcgill.ca`;
@@ -61,13 +59,13 @@ describe('McGill Bookings — comprehensive API tests', () => {
         p2Email,
       ]);
     } catch {
-      // ignore
+      // ignore cleanup errors
     }
     await closeSessionStore();
     await pool.end();
   });
 
-  // --- Health & validation ---
+  // health and validation
   test('GET /api/health', async () => {
     const res = await request(app).get('/api/health').expect(200);
     assert.equal(res.body.success, true);
@@ -150,7 +148,7 @@ describe('McGill Bookings — comprehensive API tests', () => {
     await request(app).get('/api/auth/me').expect(401);
   });
 
-  // --- Office hours: create, activate, browse, invite ---
+  // office hours create activate browse invite
   test('owner: slots CRUD, owner directory, invite page', async () => {
     const agent = request.agent(app);
     await agent.post('/api/auth/login').send({ email: ownerEmail, password }).expect(200);
@@ -304,7 +302,7 @@ describe('McGill Bookings — comprehensive API tests', () => {
     assert.ok(String(ics.text).includes('BEGIN:VCALENDAR'));
   });
 
-  // --- Type 1: meeting request ---
+  // type 1 meeting request flow
   test('meeting request: create, owner accepts, appears for student', async () => {
     const stu = request.agent(app);
     await stu.post('/api/auth/login').send({ email: studentEmail, password }).expect(200);
@@ -337,7 +335,7 @@ describe('McGill Bookings — comprehensive API tests', () => {
     assert.equal(row?.status, 'accepted');
   });
 
-  // --- Type 2: group meeting (calendar) ---
+  // type 2 group meeting poll
   test('group meeting: create, participant votes, owner finalizes', async () => {
     const own = request.agent(app);
     await own.post('/api/auth/login').send({ email: ownerEmail, password }).expect(200);
@@ -379,7 +377,7 @@ describe('McGill Bookings — comprehensive API tests', () => {
     assert.equal(detail.body.data.meeting.status, 'finalized');
   });
 
-  // --- Type 3: recurrence patterns ---
+  // type 3 recurrence patterns
   test('recurrence patterns: create, list mine, delete', async () => {
     const own = request.agent(app);
     await own.post('/api/auth/login').send({ email: ownerEmail, password }).expect(200);
@@ -403,7 +401,7 @@ describe('McGill Bookings — comprehensive API tests', () => {
     await own.delete(`/api/recurrence-patterns/${recurrencePatternId}`).expect(200);
   });
 
-  // --- TeamFinder ---
+  // teamfinder team requests
   test('team requests: create, list, get, join, duplicate join 409, leave, remove member, delete', async () => {
     const stu = request.agent(app);
     await stu.post('/api/auth/login').send({ email: studentEmail, password }).expect(200);
@@ -442,7 +440,7 @@ describe('McGill Bookings — comprehensive API tests', () => {
     await stu.delete(`/api/team-requests/${teamRequestId}`).expect(200);
   });
 
-  // --- Auth: logout + password ---
+  // auth logout and password change
   test('logout clears session; wrong password change rejected', async () => {
     const agent = request.agent(app);
     await agent.post('/api/auth/login').send({ email: p2Email, password }).expect(200);

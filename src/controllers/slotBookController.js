@@ -1,3 +1,4 @@
+// student books a slot with row locks and conflict checks; cancel frees the slot and notifies owner
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk } from '../utils/apiResponse.js';
@@ -90,22 +91,38 @@ export const bookSlot = asyncHandler(async (req, res) => {
     await connection.commit();
 
     const [rows] = await pool.query(
-      `SELECT id, owner_id, date, start_time, end_time, status, booked_by, booked_at
-       FROM booking_slots WHERE id = ?`,
-      [slotId]
+      `SELECT bs.id, bs.owner_id, bs.date, bs.start_time, bs.end_time, bs.status, bs.booked_by, bs.booked_at,
+              o.email AS owner_email, o.first_name AS owner_first_name, o.last_name AS owner_last_name,
+              u.first_name AS booker_first_name, u.last_name AS booker_last_name
+       FROM booking_slots bs
+       INNER JOIN users o ON bs.owner_id = o.id
+       INNER JOIN users u ON u.id = ?
+       WHERE bs.id = ?`,
+      [userId, slotId]
+    );
+
+    const row = rows[0];
+    const dateStr = formatDateOnly(row.date);
+    const timeStr = String(row.start_time).slice(0, 5);
+    const bookerName = [row.booker_first_name, row.booker_last_name].filter(Boolean).join(' ') || 'A student';
+    const notifyOwnerMailto = buildMailtoUri(
+      row.owner_email,
+      'McGill Bookings — new appointment booked',
+      `${bookerName} booked your slot on ${dateStr} at ${timeStr}.\n\nView your dashboard to see the full details.`
     );
 
     sendOk(
       res,
       {
         slot: {
-          id: rows[0].id,
-          date: formatDateOnly(rows[0].date),
-          startTime: String(rows[0].start_time).slice(0, 8),
-          endTime: String(rows[0].end_time).slice(0, 8),
-          status: rows[0].status,
-          bookedAt: rows[0].booked_at,
+          id: row.id,
+          date: dateStr,
+          startTime: String(row.start_time).slice(0, 8),
+          endTime: String(row.end_time).slice(0, 8),
+          status: row.status,
+          bookedAt: row.booked_at,
         },
+        notifyOwnerMailto,
       },
       200,
       'Booked'

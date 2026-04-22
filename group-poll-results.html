@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poll Results - Group Meeting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #d9d9d9;
+        }
+
+        /* ========== NAVBAR ========== */
+        .topnav {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            background: #e2291e;
+            padding: 0 20px;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .topnav h2 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-right a {
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .nav-right a:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .role-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: 260px;
+            height: calc(100vh - 70px);
+            background: white;
+            position: fixed;
+            left: 0;
+            top: 70px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            z-index: 90;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-260px);
+        }
+
+        .sidebar .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sidebar .menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar .menu-item.active {
+            background: #ffeaea;
+            color: #e2291e;
+            border-right: 3px solid #e2291e;
+        }
+
+        .sidebar .menu-item img {
+            width: 28px;
+            height: 28px;
+        }
+
+        .sidebar .pic {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .sidebar .pic img {
+            width: 50px;
+            opacity: 0.7;
+        }
+
+        /* Toggle Button */
+        .toggle-btn {
+            position: fixed;
+            left: 260px;
+            top: 80px;
+            background: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 0 8px 8px 0;
+            z-index: 200;
+            transition: left 0.3s ease;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .toggle-btn.shifted {
+            left: 0;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main {
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+            min-height: calc(100vh - 70px);
+        }
+
+        .main.shifted {
+            margin-left: 20px;
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #666;
+        }
+
+        /* Back Link */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #e2291e;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Results Container */
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Header */
+        .results-header {
+            background: linear-gradient(135deg, #e2291e 0%, #b22d0a 100%);
+            padding: 25px 30px;
+            color: white;
+        }
+
+        .results-header h2 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .results-header .course-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .results-header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        /* Stats Summary */
+        .stats-summary {
+            display: flex;
+            gap: 20px;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e2291e;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Form Body */
+        .form-body {
+            padding: 30px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .info-box i {
+            font-size: 20px;
+        }
+
+        .info-box p {
+            font-size: 13px;
+            color: #1565c0;
+            line-height: 1.5;
+        }
+
+        /* Winning Alert */
+        .winning-alert {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .winning-alert h4 {
+            color: #2e7d32;
+            margin-bottom: 5px;
+        }
+
+        .winning-alert p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Heatmap Container */
+        .heatmap-container {
+            margin: 20px 0;
+        }
+
+        .heatmap-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Heatmap Row */
+        .heatmap-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .heatmap-row.winning {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .time-label {
+            width: 180px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .vote-count {
+            width: 80px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .vote-count strong {
+            font-size: 20px;
+            color: #e2291e;
+        }
+
+        .heatbar {
+            flex: 1;
+            height: 36px;
+            background: #e0e0e0;
+            border-radius: 18px;
+            overflow: hidden;
+            margin: 0 12px;
+        }
+
+        .heatbar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e2291e, #ff6b6b);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .winning-badge {
+            background: #4caf50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .select-btn {
+            padding: 8px 16px;
+            background: #e2291e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .select-btn:hover {
+            background: #b22d0a;
+            transform: scale(1.02);
+        }
+
+        .select-btn.selected {
+            background: #4caf50;
+        }
+
+        /* Create Meeting Section */
+        .create-meeting-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 16px;
+            display: none;
+        }
+
+        .create-meeting-section h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .selected-time-info {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .selected-time-info p {
+            margin: 5px 0;
+        }
+
+        .selected-time-info strong {
+            color: #e2291e;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-create {
+            width: 100%;
+            padding: 14px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-create:hover {
+            background: #388e3c;
+            transform: translateY(-2px);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #e2291e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main {
+                margin-left: 20px;
+                padding: 20px;
+            }
+            .sidebar {
+                transform: translateX(-260px);
+            }
+            .toggle-btn {
+                left: 0;
+            }
+            .heatmap-row {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .time-label {
+                width: 100%;
+            }
+            .heatbar {
+                order: 1;
+                width: 100%;
+                margin: 5px 0;
+            }
+            .vote-count {
+                order: 2;
+                text-align: left;
+            }
+            .select-btn {
+                order: 3;
+            }
+            .stats-summary {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="topnav">
+    <h2>📊 Group Poll Results</h2>
+    <div class="nav-right">
+        <span class="role-badge" id="roleBadge">Professor View</span>
+        <a href="book.html">Student View</a>
+        <a href="owner-view.html">Dashboard</a>
+        <a href="owner-book.html">Create Slots</a>
+        <a href="account.html">My Account</a>
+        <a href="#" onclick="API.logout()">Logout</a>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="menu-item" onclick="location.href='owner-view.html'">
+        <img src="images/Dash.png" alt="Dashboard"><span>Dashboard</span>
+    </div>
+    <div class="menu-item active" onclick="location.href='owner-book.html'">
+        <img src="images/Book.png" alt="Create"><span>Create Slots</span>
+    </div>
+    <div class="menu-item" onclick="location.href='requests.html'">
+        <img src="images/finder.png" alt="Requests"><span>Booking Requests</span>
+    </div>
+    <div class="menu-item" onclick="location.href='account.html'">
+        <img src="images/account.png" alt="Account"><span>My Account</span>
+    </div>
+    <div class="pic">
+        <img src="images/logo-ssmu.svg" alt="SSMU">
+    </div>
+</div>
+
+<button class="toggle-btn" id="toggleBtn" onclick="toggleSidebar()">☰</button>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="main">
+    <a href="owner-view.html" class="back-link">← Back to Dashboard</a>
+
+    <div class="page-header">
+        <h1>Group Poll Results</h1>
+        <p>View vote counts and select the best time for your group meeting</p>
+    </div>
+
+    <div id="loadingState" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading poll results...</p>
+    </div>
+
+    <div id="resultsContainer" class="results-container" style="display: none;">
+        <div class="results-header">
+            <h2 id="pollTitle">Loading...</h2>
+            <span class="course-badge" id="courseBadge"></span>
+            <p id="pollDesc"></p>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-box">
+                <div class="stat-number" id="totalVoters">0</div>
+                <div class="stat-label">Total Voters</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="totalSlots">0</div>
+                <div class="stat-label">Time Slots</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="maxVotes">0</div>
+                <div class="stat-label">Highest Votes</div>
+            </div>
+        </div>
+
+        <div class="form-body">
+            <div class="info-box">
+                <span>💡</span>
+                <p>The heatmap shows which time slots are most popular. Higher bars = more votes. Select the winning time and create the meeting.</p>
+            </div>
+
+            <div class="winning-alert" id="winningAlert">
+                <h4>🏆 Current Winner</h4>
+                <p id="winningText"></p>
+            </div>
+
+            <div class="heatmap-container">
+                <div class="heatmap-title">
+                    <span>📊</span> Vote Heatmap
+                </div>
+                <div id="heatmapList"></div>
+            </div>
+
+            <div id="createMeetingSection" class="create-meeting-section">
+                <h3>📅 Finalize Group Meeting</h3>
+                <div class="selected-time-info" id="selectedTimeInfo"></div>
+
+                <div class="form-group" style="margin-top:15px">
+                    <label style="display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px">
+                        <input type="checkbox" id="isRecurring" style="width:auto;padding:0"
+                               onchange="document.getElementById('recurWrap').style.display=this.checked?'block':'none'">
+                        Make this a recurring meeting
+                    </label>
+                </div>
+
+                <div id="recurWrap" style="display:none" class="form-group">
+                    <label>Number of weeks to repeat</label>
+                    <input type="number" id="recurWeeks" value="1" min="1" max="52"
+                           placeholder="e.g. 5 for 5 consecutive weeks">
+                    <p style="font-size:11px;color:#999;margin-top:4px">
+                        The meeting will be scheduled on the same day/time for this many consecutive weeks.
+                    </p>
+                </div>
+
+                <button class="btn-create" onclick="createMeeting()">
+                    ✅ Finalize & Notify Participants
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="errorState" class="empty-state" style="display: none;">
+        <i>⚠️</i>
+        <h3>Invalid Poll Link</h3>
+        <p>The poll you're trying to access doesn't exist or has expired.</p>
+        <a href="owner-view.html" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #e2291e; color: white; text-decoration: none; border-radius: 10px;">Return to Dashboard</a>
+    </div>
+</div>
+
+<script src="shared.js"></script>
+<script src="calendar-export.js"></script>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const pollId = urlParams.get('pollId');
+    
+    let pollData = null;
+    let selectedSlot = null;
+    let currentUser = null;
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function loadUser() {
+        currentUser = await API.requireOwner();
+        if (!currentUser) return;
+        
+        const roleBadge = document.getElementById('roleBadge');
+        roleBadge.textContent = `👨‍🏫 ${currentUser.firstName} ${currentUser.lastName}`;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const [year, month, day] = dateStr.split('-');
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+        return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+    }
+
+    function formatTime(time) {
+        if (!time) return '';
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${minutes} ${ampm}`;
+    }
+
+    async function loadPollResults() {
+        if (!pollId) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            return;
+        }
+
+        try {
+            const data = await API.get(`/group-meetings/${pollId}`);
+            const meeting = data.meeting;
+
+            // Normalize into the shape the rest of the page expects
+            pollData = {
+                title: meeting.title,
+                description: '',
+                // Map options → timeSlots using voteCount as votes
+                timeSlots: (meeting.options || []).map(o => ({
+                    id: o.id,
+                    date: o.date,
+                    startTime: o.startTime,
+                    endTime: o.endTime,
+                    votes: o.voteCount || 0,
+                })),
+                status: meeting.status,
+            };
+
+            document.getElementById('pollTitle').textContent = pollData.title || 'Group Meeting Poll';
+            document.getElementById('pollDesc').textContent = '';
+            document.getElementById('courseBadge').style.display = 'none';
+
+            // Calculate stats
+            const slots = pollData.timeSlots;
+            const totalVotes = slots.reduce((sum, s) => sum + s.votes, 0);
+            const maxVotes = Math.max(...slots.map(s => s.votes), 0);
+
+            document.getElementById('totalVoters').textContent = totalVotes;
+            document.getElementById('totalSlots').textContent = slots.length;
+            document.getElementById('maxVotes').textContent = maxVotes;
+
+            renderHeatmap();
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'block';
+
+            // If already finalized, hide the select buttons
+            if (meeting.status === 'finalized') {
+                document.querySelectorAll('.select-btn').forEach(b => b.disabled = true);
+                showToast('This meeting has already been finalized.');
+            }
+
+        } catch (error) {
+            console.error('Error loading poll results:', error);
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+        }
+    }
+
+    function renderHeatmap() {
+        const container = document.getElementById('heatmapList');
+        const slots = pollData.timeSlots || [];
+        
+        if (slots.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No time slots available</div>';
+            return;
+        }
+        
+        // Find max votes for heatmap scaling
+        const maxVotes = Math.max(...slots.map(s => s.votes || 0), 1);
+        
+        container.innerHTML = '';
+        let topSlot = null;
+        let topVotes = 0;
+        
+        slots.forEach((slot, index) => {
+            const voteCount = slot.votes || 0;
+            const percentage = (voteCount / maxVotes) * 100;
+            const isWinning = selectedSlot && selectedSlot.index === index;
+            
+            if (voteCount > topVotes) {
+                topVotes = voteCount;
+                topSlot = slot;
+            }
+            
+            const dateStr = formatDate(slot.date);
+            const startTime = formatTime(slot.startTime);
+            const endTime = formatTime(slot.endTime);
+            
+            const row = document.createElement('div');
+            row.className = `heatmap-row ${isWinning ? 'winning' : ''}`;
+            
+            row.innerHTML = `
+                <div class="time-label">
+                    📅 ${dateStr}<br>
+                    ⏰ ${startTime} – ${endTime}
+                </div>
+                <div class="vote-count">
+                    <strong>${voteCount}</strong> vote${voteCount !== 1 ? 's' : ''}
+                </div>
+                <div class="heatbar">
+                    <div class="heatbar-fill" style="width: ${percentage}%">
+                        ${percentage > 25 ? Math.round(percentage) + '%' : ''}
+                    </div>
+                </div>
+                <button class="select-btn ${isWinning ? 'selected' : ''}" onclick="selectTimeSlot(${index}, '${slot.date}', '${slot.startTime || ''}', '${slot.endTime || ''}')">
+                    ${isWinning ? '✓ Selected' : 'Select This Time'}
+                </button>
+                ${isWinning ? '<span class="winning-badge">🏆 Selected</span>' : ''}
+            `;
+            
+            container.appendChild(row);
+        });
+        
+        // Update winning alert
+        if (topSlot && !selectedSlot) {
+            const alertDiv = document.getElementById('winningAlert');
+            const winningText = document.getElementById('winningText');
+            winningText.innerHTML = `${formatDate(topSlot.date)} at ${formatTime(topSlot.startTime)} – ${formatTime(topSlot.endTime)} (${topVotes} votes)`;
+            alertDiv.style.display = 'block';
+        } else if (selectedSlot) {
+            const alertDiv = document.getElementById('winningAlert');
+            alertDiv.style.display = 'none';
+        }
+    }
+
+    function selectTimeSlot(index, date, startTime, endTime) {
+        const slots = pollData.timeSlots;
+        selectedSlot = { index, optionId: slots[index].id, date, startTime, endTime };
+
+        renderHeatmap();
+
+        const meetingSection = document.getElementById('createMeetingSection');
+        const selectedTimeInfo = document.getElementById('selectedTimeInfo');
+
+        selectedTimeInfo.innerHTML = `
+            <p><strong>✓ Selected time:</strong></p>
+            <p>📅 ${formatDate(date)}</p>
+            <p>⏰ ${formatTime(startTime)} – ${formatTime(endTime)}</p>
+        `;
+
+        meetingSection.style.display = 'block';
+    }
+
+    async function createMeeting() {
+        if (!selectedSlot) {
+            showToast('Please select a time slot first');
+            return;
+        }
+
+        const createBtn = document.querySelector('.btn-create');
+        const originalText = createBtn.innerHTML;
+        createBtn.disabled = true;
+        createBtn.innerHTML = '<span class="spinner"></span> Finalizing meeting...';
+
+        const isRecurring = document.getElementById('isRecurring').checked;
+        const recurWeeks = isRecurring
+            ? (parseInt(document.getElementById('recurWeeks').value, 10) || 1)
+            : 1;
+
+        try {
+            const res = await API.patch(`/group-meetings/${pollId}/finalize`, {
+                selectedOptionId: selectedSlot.optionId,
+                isRecurring,
+                recurWeeks,
+            });
+
+            // Notify participants via mailto if provided
+            if (res.notifyParticipantsMailto) {
+                window.open(res.notifyParticipantsMailto, '_blank');
+            }
+
+            showToast('✓ Group meeting finalized! Participants have been notified.');
+
+            setTimeout(() => {
+                window.location.href = 'owner-view.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('Error finalizing meeting:', error);
+            showToast('Error: ' + (error.message || 'Could not finalize meeting'));
+            createBtn.disabled = false;
+            createBtn.innerHTML = originalText;
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main');
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        sidebar.classList.toggle('hidden');
+        main.classList.toggle('shifted');
+        toggleBtn.classList.toggle('shifted');
+    }
+
+    // Initialize
+    async function init() {
+        await loadUser();
+        await loadPollResults();
+    }
+    
+    init();
+</script>
+</body>
+</html>
