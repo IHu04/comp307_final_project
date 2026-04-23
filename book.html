@@ -493,7 +493,6 @@
                         <h4>${name} <span style="font-weight:normal;color:#888;font-size:13px">— ${o.activeSlotCount} active slot(s)</span></h4>
                         <div class="actions">
                             <button onclick="requestMeeting(${o.id}, '${encodeURIComponent(name)}')">Request Meeting</button>
-                            <button onclick="viewSlots(${o.id}, this)">View Slots</button>
                             <button type="button" onclick="openStudentCalendar(${o.id}, ${JSON.stringify(o.firstName || '')}, ${JSON.stringify(o.lastName || '')}, ${JSON.stringify(o.email || '')})">Calendar view</button>
                             <button onclick="emailOwner('${o.email}')">Email</button>
                         </div>
