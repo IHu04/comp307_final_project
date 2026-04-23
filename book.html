@@ -494,6 +494,7 @@
                         <div class="actions">
                             <button onclick="requestMeeting(${o.id}, '${encodeURIComponent(name)}')">Request Meeting</button>
                             <button onclick="viewSlots(${o.id}, this)">View Slots</button>
+                            <button type="button" onclick="openStudentCalendar(${o.id}, ${JSON.stringify(o.firstName || '')}, ${JSON.stringify(o.lastName || '')}, ${JSON.stringify(o.email || '')})">Calendar view</button>
                             <button onclick="emailOwner('${o.email}')">Email</button>
                         </div>
                     </div>
@@ -517,6 +518,16 @@
         });
 
         function showAll() { renderOwners(allOwners); }
+
+        function openStudentCalendar(ownerId, firstName, lastName, email) {
+            const q = new URLSearchParams({
+                ownerId: String(ownerId),
+                firstName: firstName || '',
+                lastName: lastName || '',
+                email: email || '',
+            });
+            window.location.href = 'student-book-appt.html?' + q.toString();
+        }
 
         function requestMeeting(ownerId, nameEnc) {
             window.location.href = `student-request.html?ownerId=${ownerId}&name=${nameEnc}`;

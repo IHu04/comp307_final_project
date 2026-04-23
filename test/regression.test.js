@@ -190,6 +190,7 @@ describe('McGill Bookings comprehensive API tests', () => {
 
     const dash = await agent.get('/api/dashboard').expect(200);
     assert.equal(dash.body.data.isOwner, false);
+    assert.ok(Array.isArray(dash.body.data.teamRequestsOpen));
     assert.ok(dash.body.data.appointments.some((a) => a.slotId === slotId));
 
     const ownerAgent = request.agent(app);
@@ -208,6 +209,7 @@ describe('McGill Bookings comprehensive API tests', () => {
     assert.equal(dash.body.data.isOwner, true);
     assert.ok(Array.isArray(dash.body.data.appointments));
     assert.ok(Array.isArray(dash.body.data.meetingRequestsPending));
+    assert.ok(Array.isArray(dash.body.data.teamRequestsOpen));
   });
 
   test('PUT /api/users/me updates profile', async () => {

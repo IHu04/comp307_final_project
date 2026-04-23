@@ -14,7 +14,7 @@ function mapPublicUser(row) {
   };
 }
 
-function mapListItem(row) {
+export function mapListItem(row) {
   return {
     id: row.id,
     courseCode: row.course_code,

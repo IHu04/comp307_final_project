@@ -12,6 +12,7 @@ import { sendOk } from '../utils/apiResponse.js';
 import { formatDateOnly } from '../utils/dateSlot.js';
 import { buildMailtoUri } from '../utils/mailto.js';
 import { slotDateTimesInMontreal } from '../utils/montrealSlot.js';
+import { mapListItem as mapTeamRequestListItem } from './teamRequestController.js';
 
 function fullName(first, last) {
   return [first, last].filter(Boolean).join(' ').trim() || 'Unknown';
@@ -79,6 +80,27 @@ export const getDashboard = asyncHandler(async (req, res) => {
 
   const isOwner = Boolean(users[0].is_owner);
 
+  const [teamRows] = await pool.query(
+    `SELECT tr.id, tr.course_code, tr.team_name, tr.description, tr.max_members, tr.is_open,
+            tr.created_at, tr.creator_id,
+            u.first_name AS creator_first_name, u.last_name AS creator_last_name,
+            u.email AS creator_email,
+            COUNT(tm.id) AS member_count,
+            EXISTS (
+              SELECT 1 FROM team_members tm2
+              WHERE tm2.team_request_id = tr.id AND tm2.user_id = ?
+            ) AS is_member
+     FROM team_requests tr
+     JOIN users u ON u.id = tr.creator_id
+     LEFT JOIN team_members tm ON tm.team_request_id = tr.id
+     WHERE tr.is_open = TRUE
+     GROUP BY tr.id
+     ORDER BY tr.created_at DESC
+     LIMIT 20`,
+    [userId]
+  );
+  const teamRequestsOpen = teamRows.map(mapTeamRequestListItem);
+
   if (isOwner) {
     const [slots] = await pool.query(
       `SELECT s.id, s.date, s.start_time, s.end_time, s.status, s.booked_by,
@@ -118,6 +140,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
       isOwner: true,
       appointments: slots.map(mapOwnerSlotRow),
       meetingRequestsPending,
+      teamRequestsOpen,
     });
     return;
   }
@@ -149,6 +172,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
     isOwner: false,
     appointments: slots.map(mapStudentRow),
     meetingRequestsPending: [],
+    teamRequestsOpen,
   });
 });
 

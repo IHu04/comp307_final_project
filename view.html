@@ -280,10 +280,36 @@
             color:#ED1B2F;
         }
 
-  
+        .teamfinder-dash {
+            margin-top: 28px;
+            background: white;
+            border-radius: 15px;
+            padding: 16px 18px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
 
+        .teamfinder-dash h3 {
+            margin: 0 0 6px;
+            font-size: 1.15rem;
+            color: #1a1a1a;
+        }
 
+        .teamfinder-dash .tf-actions button {
+            margin-right: 8px;
+            margin-top: 6px;
+            padding: 6px 12px;
+            border-radius: 5px;
+            border: 1px solid #1e78de;
+            background: white;
+            color: #1e78de;
+            cursor: pointer;
+            font-size: 13px;
+        }
 
+        .teamfinder-dash .tf-actions button:hover {
+            border-color: #ED1B2F;
+            color: #ED1B2F;
+        }
 
 </style>
 
@@ -413,6 +439,13 @@
                         </div>
                     </div>
 
+                    <div class="teamfinder-dash" id="teamfinderDash">
+                        <h3>Find teammates (TeamFinder)</h3>
+                        <p style="margin:0 0 12px;font-size:14px;color:#888">Open team listings from your dashboard. Post or filter on the full TeamFinder page.</p>
+                        <div id="teamRequestsDashList"></div>
+                        <p style="margin:12px 0 0"><a href="teamup.html" style="color:#1e78de;font-size:14px">Open full TeamFinder</a></p>
+                    </div>
+
                 </div>
 
 
@@ -453,9 +486,11 @@
         // Backend-delivered appointments, bucketed by slot_type.
         // Fetched by `loadAppointments()`.
         const buckets = { meetings: [], group: [], office: [] };
+        let dashUserId = null;
 
         async function loadAppointments() {
-            const { appointments } = await API.get('/dashboard');
+            const data = await API.get('/dashboard');
+            const { appointments, teamRequestsOpen } = data;
             buckets.meetings = [];
             buckets.group = [];
             buckets.office = [];
@@ -484,6 +519,108 @@
             renderTab('meetings');
             renderTab('group');
             renderTab('office');
+            renderTeamRequestsDash(teamRequestsOpen || [], dashUserId);
+        }
+
+        function renderTeamRequestsDash(requests, userId) {
+            const container = document.getElementById('teamRequestsDashList');
+            container.innerHTML = '';
+            if (!requests.length) {
+                const p = document.createElement('p');
+                p.style.cssText = 'color:#888;font-size:14px;margin:0';
+                p.textContent = 'No open team requests right now. ';
+                const a = document.createElement('a');
+                a.href = 'teamup.html';
+                a.style.color = '#1e78de';
+                a.textContent = 'Post one on TeamFinder';
+                p.appendChild(a);
+                container.appendChild(p);
+                return;
+            }
+            requests.forEach((req) => {
+                const full = req.maxMembers && req.memberCount >= req.maxMembers;
+                const isCreator = req.creatorId === userId;
+                const isMember = req.isMember;
+                const card = document.createElement('div');
+                card.style.cssText =
+                    'border:1px solid #eee;border-radius:10px;padding:12px;margin-bottom:10px;background:#fafafa';
+                const title = document.createElement('div');
+                title.style.cssText = 'font-weight:bold;margin-bottom:4px';
+                title.textContent = req.teamName;
+                const meta = document.createElement('div');
+                meta.style.cssText = 'font-size:13px;color:#666';
+                meta.textContent =
+                    req.courseCode +
+                    ' · ' +
+                    (req.creator.firstName || '') +
+                    ' ' +
+                    (req.creator.lastName || '') +
+                    ' · Members ' +
+                    req.memberCount +
+                    '/' +
+                    (req.maxMembers || '?');
+                card.appendChild(title);
+                card.appendChild(meta);
+                if (req.description) {
+                    const desc = document.createElement('div');
+                    desc.style.cssText = 'font-size:13px;margin-top:8px;color:#444';
+                    desc.textContent = req.description;
+                    card.appendChild(desc);
+                }
+                if (full) {
+                    const tag = document.createElement('div');
+                    tag.style.cssText = 'margin-top:6px;font-size:12px;color:#b22d0a';
+                    tag.textContent = 'Team full';
+                    card.appendChild(tag);
+                }
+                const actions = document.createElement('div');
+                actions.className = 'tf-actions';
+                const mailBtn = document.createElement('button');
+                mailBtn.type = 'button';
+                mailBtn.textContent = 'Email creator';
+                mailBtn.addEventListener('click', () => {
+                    const sub = encodeURIComponent('McGill TeamFinder');
+                    const body = encodeURIComponent(
+                        'Hi,\n\nI saw your team post on McGill Bookings.\n'
+                    );
+                    window.location.href =
+                        'mailto:' + req.creator.email + '?subject=' + sub + '&body=' + body;
+                });
+                actions.appendChild(mailBtn);
+                if (!isCreator && !isMember && !full) {
+                    const joinBtn = document.createElement('button');
+                    joinBtn.type = 'button';
+                    joinBtn.textContent = 'Join';
+                    joinBtn.addEventListener('click', async () => {
+                        try {
+                            await API.post('/team-requests/' + req.id + '/join');
+                            await loadAppointments();
+                        } catch (e) {
+                            alert('Could not join: ' + (e.message || 'error'));
+                        }
+                    });
+                    actions.appendChild(joinBtn);
+                }
+                if (!isCreator && isMember) {
+                    const leaveBtn = document.createElement('button');
+                    leaveBtn.type = 'button';
+                    leaveBtn.textContent = 'Leave';
+                    leaveBtn.style.borderColor = '#888';
+                    leaveBtn.style.color = '#555';
+                    leaveBtn.addEventListener('click', async () => {
+                        if (!confirm('Leave this team?')) return;
+                        try {
+                            await API.del('/team-requests/' + req.id + '/leave');
+                            await loadAppointments();
+                        } catch (e) {
+                            alert('Could not leave: ' + (e.message || 'error'));
+                        }
+                    });
+                    actions.appendChild(leaveBtn);
+                }
+                card.appendChild(actions);
+                container.appendChild(card);
+            });
         }
 
         function renderTab(type) {
@@ -537,6 +674,7 @@
             const user = await API.requireAuth();
             if (!user) return;
             if (user.isOwner) { window.location.href = 'owner-view.html'; return; }
+            dashUserId = user.id;
             document.getElementById('welcome-h').textContent =
                 `Welcome, ${user.firstName || 'user'}!`;
             await loadAppointments();
