@@ -130,6 +130,16 @@ function loadPending() {
 function renderSummary() {
   const info = document.getElementById('info');
   info.innerHTML = '';
+
+  const isMeeting = pending.slotType === 'meeting_request';
+  const badgeLabel = isMeeting ? 'Meeting' : 'Office Hours';
+  const badgeBg = isMeeting ? '#e8f1ff' : '#eaf7ea';
+  const badgeColor = isMeeting ? '#1e78de' : '#2a7a2a';
+  const badge = document.createElement('div');
+  badge.style.cssText = 'margin-bottom:12px';
+  badge.innerHTML = `<span style="background:${badgeBg};color:${badgeColor};font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;letter-spacing:.3px">${badgeLabel}</span>`;
+  info.appendChild(badge);
+
   const lines = [
     ['Professor:', pending.ownerName || 'Professor'],
     ['Date:', pending.date || ''],

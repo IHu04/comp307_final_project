@@ -569,23 +569,34 @@
                     panel.innerHTML = '<em style="font-size:13px;color:#888">No active slots.</em>';
                     return;
                 }
-                panel.innerHTML = slots.map(s => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;
+                panel.innerHTML = slots.map(s => {
+                    const isMeeting = s.slotType === 'meeting_request';
+                    const badgeLabel = isMeeting ? 'Meeting' : 'Office Hours';
+                    const badgeBg = isMeeting ? '#e8f1ff' : '#eaf7ea';
+                    const badgeColor = isMeeting ? '#1e78de' : '#2a7a2a';
+                    return `
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;
                                 background:#f6f6f6;padding:8px 12px;margin-bottom:6px;border-radius:5px;font-size:14px">
-                        <span><b>${s.date}</b> &middot; ${s.startTime.slice(0,5)}–${s.endTime.slice(0,5)}</span>
-                        <button onclick="bookSlot(${s.id}, '${s.date}', '${s.startTime}', '${s.endTime}')"
+                        <span style="display:flex;align-items:center;gap:8px;flex:1">
+                            <span style="background:${badgeBg};color:${badgeColor};font-size:11px;font-weight:600;
+                                         padding:2px 8px;border-radius:10px;letter-spacing:.3px">${badgeLabel}</span>
+                            <span><b>${s.date}</b> &middot; ${s.startTime.slice(0,5)}–${s.endTime.slice(0,5)}</span>
+                        </span>
+                        <button onclick="bookSlot(${s.id}, '${s.date}', '${s.startTime}', '${s.endTime}', '${s.slotType}')"
                                 style="padding:5px 10px;border:1px solid #1e78de;color:#1e78de;border-radius:5px;background:white;cursor:pointer">
                             Book
                         </button>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (e) {
                 panel.innerHTML = `<span style="color:#b22d0a;font-size:13px">Error: ${e.message}</span>`;
             }
         }
 
-        async function bookSlot(slotId, date, startTime, endTime) {
-            if (!confirm(`Book this slot on ${date} at ${startTime.slice(0,5)}?`)) return;
+        async function bookSlot(slotId, date, startTime, endTime, slotType) {
+            const kindLabel = slotType === 'meeting_request' ? 'meeting' : 'office-hours';
+            if (!confirm(`Book this ${kindLabel} slot on ${date} at ${startTime.slice(0,5)}?`)) return;
             try {
                 const data = await API.post(`/slots/${slotId}/book`);
                 // Notify the owner via mailto

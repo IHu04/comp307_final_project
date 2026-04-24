@@ -92,7 +92,10 @@ export const createSlots = asyncHandler(async (req, res) => {
       });
     }
 
-    normalized.push({ date, start, end });
+    const allowedTypes = ['office_hours', 'meeting_request'];
+    const slotType = allowedTypes.includes(s?.slotType) ? s.slotType : 'office_hours';
+
+    normalized.push({ date, start, end, slotType });
   }
 
   const byDate = new Map();
@@ -130,8 +133,8 @@ export const createSlots = asyncHandler(async (req, res) => {
       const [result] = await connection.query(
         `INSERT INTO booking_slots
           (owner_id, date, start_time, end_time, status, slot_type)
-         VALUES (?, ?, ?, ?, 'draft', 'office_hours')`,
-        [ownerId, s.date, s.start, s.end]
+         VALUES (?, ?, ?, ?, 'draft', ?)`,
+        [ownerId, s.date, s.start, s.end, s.slotType]
       );
       const [rows] = await connection.query(
         `SELECT id, owner_id, date, start_time, end_time, status, slot_type,

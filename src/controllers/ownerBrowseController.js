@@ -10,6 +10,7 @@ function mapPublicSlot(row) {
     date: formatDateOnly(row.date),
     startTime: String(row.start_time).slice(0, 8),
     endTime: String(row.end_time).slice(0, 8),
+    slotType: row.slot_type,
   };
 }
 
@@ -51,7 +52,7 @@ export const listOwnerActiveSlots = asyncHandler(async (req, res) => {
   }
 
   const [slots] = await pool.query(
-    `SELECT id, date, start_time, end_time
+    `SELECT id, date, start_time, end_time, slot_type
      FROM booking_slots
      WHERE owner_id = ?
        AND status = 'active'
@@ -83,7 +84,7 @@ export const inviteByToken = asyncHandler(async (req, res) => {
 
   const owner = users[0];
   const [slots] = await pool.query(
-    `SELECT id, date, start_time, end_time
+    `SELECT id, date, start_time, end_time, slot_type
      FROM booking_slots
      WHERE owner_id = ?
        AND status = 'active'

@@ -477,8 +477,8 @@
             }
         }
 
-        // Backend-delivered appointments, bucketed by slot_type.
-        // Fetched by `loadAppointments()`.
+        // backend-delivered appointments, bucketed by slot_type
+        // meeting_request goes to meetings tab, office_hours goes to office tab
         const buckets = { meetings: [], office: [] };
         let cachedGroupMeetings = [];
         let dashUserId = null;
@@ -503,7 +503,7 @@
                 };
                 if (a.slotType === 'meeting_request') {
                     buckets.meetings.push(entry);
-                } else if (a.slotType !== 'group_meeting') {
+                } else if (a.slotType === 'office_hours') {
                     buckets.office.push(entry);
                 }
             });

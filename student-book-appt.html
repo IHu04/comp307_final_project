@@ -587,7 +587,13 @@ function selectDate(dateStr) {
 
         const timeBtn = document.createElement('button');
         timeBtn.className   = 'slot-time-btn';
-        timeBtn.textContent = formatTime(slot.startTime);
+        const isMeeting = slot.slotType === 'meeting_request';
+        const badgeLabel = isMeeting ? 'Meeting' : 'Office Hours';
+        const badgeBg = isMeeting ? '#e8f1ff' : '#eaf7ea';
+        const badgeColor = isMeeting ? '#1e78de' : '#2a7a2a';
+        timeBtn.innerHTML = `${formatTime(slot.startTime)}
+            <span style="margin-left:8px;background:${badgeBg};color:${badgeColor};font-size:10px;font-weight:600;
+                         padding:2px 7px;border-radius:10px;letter-spacing:.3px;vertical-align:middle">${badgeLabel}</span>`;
 
         const confirmBtn = document.createElement('button');
         confirmBtn.className   = 'slot-confirm-btn';
@@ -615,6 +621,7 @@ function selectDate(dateStr) {
                 date: slot.date,
                 startTime: slot.startTime,
                 endTime: slot.endTime,
+                slotType: slot.slotType,
                 returnUrl: `student-book-appt.html?${returnParams.toString()}`,
             }));
             window.location.href = 'confirm.html';

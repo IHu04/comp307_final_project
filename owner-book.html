@@ -903,7 +903,7 @@
                 if (selectedType === 'meeting') {
                     // One-off slot → create as draft, then activate so students can book it.
                     const data = await API.post('/slots', {
-                        slots: [{ date, startTime, endTime }],
+                        slots: [{ date, startTime, endTime, slotType: 'meeting_request' }],
                     });
     
                     alert('Meeting slot created!');
