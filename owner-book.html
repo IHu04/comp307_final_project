@@ -806,8 +806,7 @@
                     const data = await API.post('/slots', {
                         slots: [{ date, startTime, endTime }],
                     });
-                    const slotId = data.slots?.[0]?.id;
-                    if (slotId) await API.patch(`/slots/${slotId}/activate`);
+    
                     alert('Meeting slot created and active!');
                     window.location.href = 'owner-view.html';
                     return;
