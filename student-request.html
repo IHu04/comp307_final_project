@@ -11,6 +11,12 @@
     body {
         margin: 0;
         background-color: lightgray;
+        animation: pagein 0.15s ease;
+    }
+
+    @keyframes pagein {
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 
     .container {
@@ -714,6 +720,17 @@
         }
 
         init();
+        // fade out before navigating so sidebar clicks don't flash
+        document.querySelectorAll('.slide a[href]').forEach(a => {
+            a.addEventListener('click', e => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                document.body.style.transition = 'opacity 0.15s ease';
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = href; }, 150);
+            });
+        });
     </script>
 
 

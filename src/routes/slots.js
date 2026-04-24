@@ -22,7 +22,7 @@ const ownerAndSlot = [
   isResourceOwner('booking_slots', 'id'),
 ];
 
-// register /mine before /:id so "mine" is not parsed as an id
+// /mine must be registered before /:id so the literal word "mine" is not treated as an id
 router.get('/mine', ...ownerOnly, listMySlots);
 router.post('/', ...ownerOnly, createSlots);
 

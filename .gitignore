@@ -5,3 +5,5 @@ dist/
 .DS_Store
 .claude/
 .cursor/
+BACKEND.md
+schema.html

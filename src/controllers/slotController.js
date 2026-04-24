@@ -1,6 +1,6 @@
-// owner side office hour slots: draft then active then booked
+// owner-side office hour slots with draft, active, and booked states
 // draft is hidden from students; active is bookable; booked is reserved
-// overlap checks use transactions and select for update to avoid double booking
+// overlap checks run inside transactions with select for update to prevent double booking
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk, sendCreated } from '../utils/apiResponse.js';
@@ -359,7 +359,9 @@ export const deleteSlot = asyncHandler(async (req, res) => {
   const slotId = req.params.id;
 
   const [rows] = await pool.query(
-    `SELECT s.id, s.status, s.date, s.start_time, s.end_time, u.email AS booker_email
+    `SELECT s.id, s.status, s.slot_type, s.group_meeting_id,
+            s.date, s.start_time, s.end_time,
+            u.email AS booker_email
      FROM booking_slots s
      LEFT JOIN users u ON s.booked_by = u.id
      WHERE s.id = ? AND s.owner_id = ?`,
@@ -371,13 +373,45 @@ export const deleteSlot = asyncHandler(async (req, res) => {
   }
 
   const row = rows[0];
-  const wasBooked = row.status === 'booked' && row.booker_email;
+  const dateStr = formatDateOnly(row.date);
+  const timeStr = String(row.start_time).slice(0, 5);
+
   let cancelMailto = null;
-  if (wasBooked) {
+  let notifyParticipantsMailto = null;
+
+  // regular booked slot — notify the individual booker
+  if (row.status === 'booked' && row.booker_email && row.slot_type !== 'group_meeting') {
     cancelMailto = buildMailtoUri(
       row.booker_email,
-      'Booking Cancelled',
-      'Your booking for this office hours slot has been cancelled by the instructor.'
+      'McGill Bookings — appointment cancelled',
+      `Your booking on ${dateStr} at ${timeStr} has been cancelled by the instructor.`
+    );
+  }
+
+  // group meeting slot — notify all participants and cancel the meeting record
+  if (row.slot_type === 'group_meeting' && row.group_meeting_id) {
+    const [gm] = await pool.query(
+      'SELECT title FROM group_meetings WHERE id = ? LIMIT 1',
+      [row.group_meeting_id]
+    );
+    const [parts] = await pool.query(
+      `SELECT u.email FROM group_meeting_participants p
+       INNER JOIN users u ON p.user_id = u.id
+       WHERE p.group_meeting_id = ?`,
+      [row.group_meeting_id]
+    );
+    const emails = parts.map((p) => p.email).filter(Boolean);
+    if (emails.length) {
+      notifyParticipantsMailto = buildMailtoUri(
+        emails.join(','),
+        `McGill Bookings — group meeting cancelled: ${gm[0]?.title || 'Meeting'}`,
+        `The group meeting scheduled for ${dateStr} at ${timeStr} has been cancelled by the organizer.`
+      );
+    }
+    // mark the group meeting as cancelled so it disappears from participant dashboards
+    await pool.query(
+      `UPDATE group_meetings SET status = 'cancelled' WHERE id = ?`,
+      [row.group_meeting_id]
     );
   }
 
@@ -388,9 +422,10 @@ export const deleteSlot = asyncHandler(async (req, res) => {
     {
       deleted: true,
       ...(cancelMailto && { cancelMailto }),
+      ...(notifyParticipantsMailto && { notifyParticipantsMailto }),
     },
     200,
-    wasBooked ? 'Slot deleted; notify booker via cancelMailto' : 'Slot deleted'
+    'Slot deleted'
   );
 });
 

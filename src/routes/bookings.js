@@ -1,4 +1,4 @@
-// /api/bookings: legacy bookings list plus delete on booking_slots via nested path
+// legacy bookings list and cancel booking_slots via nested path
 import { Router } from 'express';
 import { param } from 'express-validator';
 import { listBookings } from '../controllers/bookingController.js';
@@ -12,10 +12,10 @@ const slotIdMustBeNumber = param('slotId')
   .isInt({ min: 1 })
   .withMessage('slotId must be a positive integer');
 
-// paginated rows from the old bookings table
+// returns paginated rows from the legacy bookings table
 router.get('/', isAuthenticated, listBookings);
 
-// cancel a booking_slots row and set the slot back to active
+// cancels a booking_slots row and sets the slot back to active
 router.delete('/slots/:slotId', isAuthenticated, slotIdMustBeNumber, validate, cancelMySlotBooking);
 
 export default router;

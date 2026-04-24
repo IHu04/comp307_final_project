@@ -11,6 +11,12 @@
     body {
         margin: 0;
         background-color: lightgray;
+        animation: pagein 0.15s ease;
+    }
+
+    @keyframes pagein {
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 
     .container {
@@ -555,6 +561,50 @@
     line-height: 1.7;
 }
 
+.gm-option-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+}
+
+.gm-option-row label {
+    font-size: 12px;
+    color: #666;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.gm-option-row input {
+    width: 100%;
+    padding: 7px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.gm-remove-btn {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    color: #999;
+    cursor: pointer;
+    padding: 7px 10px;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.gm-remove-btn:hover {
+    border-color: #ED1B2F;
+    color: #ED1B2F;
+}
+
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 640px) {
     .booking-body { flex-direction: column; }
@@ -672,7 +722,8 @@
                             </div>
 
                             <div style="padding: 24px 32px;">
-                                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
+                                <!-- single date/time row, hidden when group meeting is selected -->
+                                <div id="single-time-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
                                     <div>
                                         <label style="font-size:13px;color:#333">Date</label>
                                         <input type="date" id="slot-date"
@@ -708,18 +759,24 @@
                                 </div>
 
                                 <!-- Group-Meeting only: extras -->
-                                <div id="group-wrap" style="display:none;margin-top:14px">
+                                <div id="group-wrap" style="display:none;margin-top:4px">
                                     <label style="font-size:13px;color:#333">Group meeting title (optional)</label>
                                     <input type="text" id="gm-title" placeholder="e.g. Final project sync"
-                                           style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;margin-top:4px;margin-bottom:10px">
+                                           style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;margin-top:4px;margin-bottom:14px">
 
-                                    <label style="font-size:13px;color:#333">Participant emails (comma-separated, must end in @mail.mcgill.ca)</label>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                                        <label style="font-size:13px;color:#333;font-weight:600">Time options (participants will vote on these)</label>
+                                        <button type="button" onclick="addTimeOption()"
+                                                style="font-size:12px;padding:4px 10px;border:1px solid #1e78de;color:#1e78de;background:white;border-radius:6px;cursor:pointer">
+                                            + Add option
+                                        </button>
+                                    </div>
+                                    <div id="gm-options-list"></div>
+
+                                    <label style="font-size:13px;color:#333;margin-top:14px;display:block">Participant emails (one per line or comma-separated, must end in @mail.mcgill.ca)</label>
                                     <textarea id="gm-emails" rows="3"
                                               placeholder="alice@mail.mcgill.ca, bob@mail.mcgill.ca"
                                               style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;margin-top:4px;font-family:inherit"></textarea>
-                                    <p style="font-size:12px;color:#888;margin-top:4px">
-                                        The date/time above becomes the first voting option. You can add more options after creation from the dashboard.
-                                    </p>
                                 </div>
 
                                 <div id="err" style="color:#b22d0a;font-size:13px;min-height:16px;margin-top:10px"></div>
@@ -758,6 +815,39 @@
             group:   { title: 'Group Meeting', desc: 'Invite participants to vote on a time option.' },
         };
 
+        let gmOptionCount = 0;
+
+        function addTimeOption() {
+            gmOptionCount++;
+            const idx = gmOptionCount;
+            const row = document.createElement('div');
+            row.className = 'gm-option-row';
+            row.id = `gm-opt-${idx}`;
+            row.innerHTML = `
+                <div>
+                    <label>Date</label>
+                    <input type="date" id="gm-date-${idx}">
+                </div>
+                <div>
+                    <label>Start time</label>
+                    <input type="time" id="gm-start-${idx}">
+                </div>
+                <div>
+                    <label>End time</label>
+                    <input type="time" id="gm-end-${idx}">
+                </div>
+                <div>
+                    <button type="button" class="gm-remove-btn" onclick="removeTimeOption(${idx})">x</button>
+                </div>
+            `;
+            document.getElementById('gm-options-list').appendChild(row);
+        }
+
+        function removeTimeOption(idx) {
+            const row = document.getElementById(`gm-opt-${idx}`);
+            if (row) row.remove();
+        }
+
         function pickCard(type) {
             selectedType = type;
             document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
@@ -765,8 +855,14 @@
                     .classList.add('selected');
             document.getElementById('slot-type-title').textContent = typeInfo[type].title;
             document.getElementById('slot-type-desc').textContent  = typeInfo[type].desc;
-            document.getElementById('recur-wrap').style.display = (type === 'office') ? 'block' : 'none';
-            document.getElementById('group-wrap').style.display = (type === 'group')  ? 'block' : 'none';
+            document.getElementById('recur-wrap').style.display     = (type === 'office') ? 'block' : 'none';
+            document.getElementById('group-wrap').style.display     = (type === 'group')  ? 'block' : 'none';
+            document.getElementById('single-time-row').style.display = (type === 'group') ? 'none'  : 'grid';
+
+            // seed one empty option row when switching to group for the first time
+            if (type === 'group' && document.getElementById('gm-options-list').children.length === 0) {
+                addTimeOption();
+            }
         }
 
         document.getElementById('meeting').addEventListener('click', () => pickCard('meeting'));
@@ -791,13 +887,16 @@
             const date = document.getElementById('slot-date').value;
             const startTime = document.getElementById('slot-start').value;
             const endTime = document.getElementById('slot-end').value;
-            if (!date || !startTime || !endTime) {
-                err.textContent = 'Date, start time, and end time are required.';
-                return;
-            }
-            if (startTime >= endTime) {
-                err.textContent = 'End time must be after start time.';
-                return;
+            // group meetings use their own options list, not the shared date/time row
+            if (selectedType !== 'group') {
+                if (!date || !startTime || !endTime) {
+                    err.textContent = 'Date, start time, and end time are required.';
+                    return;
+                }
+                if (startTime >= endTime) {
+                    err.textContent = 'End time must be after start time.';
+                    return;
+                }
             }
 
             try {
@@ -836,15 +935,35 @@
 
                 if (selectedType === 'group') {
                     const title = document.getElementById('gm-title').value.trim();
+
+                    // collect all option rows
+                    const optionRows = document.querySelectorAll('.gm-option-row');
+                    if (optionRows.length === 0) {
+                        err.textContent = 'Add at least one time option.';
+                        return;
+                    }
+                    const options = [];
+                    for (const row of optionRows) {
+                        const idx = row.id.replace('gm-opt-', '');
+                        const d  = document.getElementById(`gm-date-${idx}`).value;
+                        const st = document.getElementById(`gm-start-${idx}`).value;
+                        const et = document.getElementById(`gm-end-${idx}`).value;
+                        if (!d || !st || !et) {
+                            err.textContent = 'Fill in date, start, and end for every time option.';
+                            return;
+                        }
+                        options.push({ date: d, startTime: st, endTime: et });
+                    }
+
                     const participantEmails = document.getElementById('gm-emails').value
-                        .split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
+                        .split(/[\s,\n]+/).map(s => s.trim()).filter(Boolean);
                     if (!participantEmails.length) {
                         err.textContent = 'Add at least one participant email.';
                         return;
                     }
                     await API.post('/group-meetings', {
                         title: title || null,
-                        options: [{ date, startTime, endTime }],
+                        options,
                         participantEmails,
                     });
                     alert('Group meeting created! Participants can now vote.');
@@ -857,6 +976,17 @@
         }
 
         init();
+        // fade out before navigating so sidebar clicks don't flash
+        document.querySelectorAll('.slide a[href]').forEach(a => {
+            a.addEventListener('click', e => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                document.body.style.transition = 'opacity 0.15s ease';
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = href; }, 150);
+            });
+        });
     </script>
 
 

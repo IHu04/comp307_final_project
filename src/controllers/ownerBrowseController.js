@@ -19,7 +19,9 @@ export const listOwnersWithActiveSlots = asyncHandler(async (req, res) => {
             COUNT(bs.id) AS active_slot_count
      FROM users u
      INNER JOIN booking_slots bs
-       ON bs.owner_id = u.id AND bs.status = 'active'
+       ON bs.owner_id = u.id
+      AND bs.status = 'active'
+      AND TIMESTAMP(bs.date, bs.end_time) > NOW()
      WHERE u.is_owner = 1
      GROUP BY u.id, u.first_name, u.last_name, u.email
      HAVING COUNT(bs.id) > 0

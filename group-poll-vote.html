@@ -346,6 +346,62 @@
             transform: none;
         }
 
+        .voted-banner {
+            display: none;
+            background: #eafaf1;
+            border: 1px solid #2a9d2a;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            color: #1e6e1e;
+            font-size: 14px;
+        }
+
+        .voted-banner strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .voted-banner .banner-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-edit-votes {
+            padding: 7px 16px;
+            background: white;
+            border: 1px solid #2a9d2a;
+            color: #2a9d2a;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-edit-votes:hover {
+            background: #eafaf1;
+        }
+
+        .btn-back {
+            padding: 7px 16px;
+            background: white;
+            border: 1px solid #aaa;
+            color: #555;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-back:hover {
+            border-color: #555;
+            color: #222;
+        }
+
         /* Loading State */
         .loading {
             text-align: center;
@@ -519,8 +575,17 @@
                 <div class="selected-tags" id="selectedTags"></div>
             </div>
 
+            <div class="voted-banner" id="votedBanner">
+                <strong>Your votes have been submitted</strong>
+                <span id="votedSummaryText"></span>
+                <div class="banner-actions">
+                    <button class="btn-edit-votes" onclick="enterEditMode()">Edit my votes</button>
+                    <a class="btn-back" href="view.html">Back to My Bookings</a>
+                </div>
+            </div>
+
             <button class="btn-submit" id="submitBtn" onclick="submitVotes()">
-                ✅ Submit My Votes
+                Submit My Votes
             </button>
         </div>
     </div>
@@ -539,8 +604,9 @@
     const pollId = urlParams.get('pollId');
     
     let pollData = null;
-    let selectedSlots = new Set(); // Store indices of selected slots
+    let selectedSlots = new Set();
     let currentUser = null;
+    let hasVoted = false;
 
     function showToast(message) {
         const toast = document.createElement('div');
@@ -604,11 +670,12 @@
                 })),
             };
 
-            // Pre-select slots the current user already voted for
+            // pre-select slots the current user already voted for
             selectedSlots.clear();
             pollData.timeSlots.forEach((slot, index) => {
                 if (slot.currentUserVoted) selectedSlots.add(index);
             });
+            hasVoted = selectedSlots.size > 0;
 
             document.getElementById('pollTitle').textContent = pollData.title || 'Group Meeting Poll';
             document.getElementById('pollDesc').textContent = '';
@@ -620,6 +687,7 @@
                 startDate === endDate ? startDate : `${startDate} – ${endDate}`;
 
             renderHeatmap();
+            updateVotedState();
 
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('pollCard').style.display = 'block';
@@ -722,6 +790,29 @@
         });
     }
 
+    function updateVotedState() {
+        const banner = document.getElementById('votedBanner');
+        const submitBtn = document.getElementById('submitBtn');
+        const summary = document.getElementById('votedSummaryText');
+
+        if (hasVoted) {
+            banner.style.display = 'block';
+            submitBtn.style.display = 'none';
+            const count = selectedSlots.size;
+            summary.textContent = `You selected ${count} time slot${count !== 1 ? 's' : ''}.`;
+        } else {
+            banner.style.display = 'none';
+            submitBtn.style.display = 'flex';
+            submitBtn.textContent = 'Submit My Votes';
+        }
+    }
+
+    function enterEditMode() {
+        hasVoted = false;
+        updateVotedState();
+        document.getElementById('submitBtn').textContent = 'Update my votes';
+    }
+
     function showError(message) {
         const errorDiv = document.getElementById('errorMsg');
         errorDiv.textContent = message;
@@ -767,20 +858,17 @@
         try {
             await API.post(`/group-meetings/${pollId}/vote`, { optionIds });
 
-            showSuccess(`✓ Your votes have been recorded! You selected ${optionIds.length} time slot(s).`);
-
-            // Reload to show updated vote counts
-            setTimeout(async () => {
-                await loadPoll();
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }, 1500);
+            // reload to get fresh vote counts, then show the voted banner
+            await loadPoll();
+            hasVoted = true;
+            updateVotedState();
+            submitBtn.disabled = false;
 
         } catch (error) {
             console.error('Error submitting votes:', error);
             showError('Error: ' + (error.message || 'Could not submit votes. Please try again.'));
             submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+            submitBtn.textContent = originalText;
         }
     }
 

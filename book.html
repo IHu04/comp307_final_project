@@ -11,6 +11,12 @@
     body {
         margin: 0;
         background-color: lightgray;
+        animation: pagein 0.15s ease;
+    }
+
+    @keyframes pagein {
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 
     .container {
@@ -246,7 +252,7 @@
 
         .result-card {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             padding: 5px;
             padding-left: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -255,7 +261,18 @@
         }
 
         .result-card:hover {
-            background-color: #e6e6e6
+            background-color: #e6e6e6;
+        }
+
+        .result-card .content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slots-panel {
+            padding-right: 6px;
+            margin-top: 8px;
         }
 
         .show {
@@ -497,7 +514,7 @@
                             <button onclick="emailOwner('${o.email}')">Email</button>
                         </div>
                     </div>
-                    <div class="slots-panel" id="slots-${o.id}" style="margin-top:10px"></div>
+                    <div class="slots-panel" id="slots-${o.id}"></div>
                 `;
                 resultsDiv.appendChild(div);
             });
@@ -584,6 +601,17 @@
         }
 
         init();
+        // fade out before navigating so sidebar clicks don't flash
+        document.querySelectorAll('.slide a[href]').forEach(a => {
+            a.addEventListener('click', e => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                document.body.style.transition = 'opacity 0.15s ease';
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = href; }, 150);
+            });
+        });
     </script>
 </body>
 </html>

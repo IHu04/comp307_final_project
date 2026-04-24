@@ -11,6 +11,12 @@
     body {
         margin: 0;
         background-color: lightgray;
+        animation: pagein 0.15s ease;
+    }
+
+    @keyframes pagein {
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 
     .container {
@@ -412,17 +418,7 @@
                         </div>
 
                         <div id="group" class="tab" style="display:none">
-
-                            <div class="row header">
-                                <div>Date</div>
-                                <div>Time</div>
-                                <div>Meeting With</div>
-                                <div>Location</div>
-                                <div>Actions</div>
-                            </div>
-
-                            <div id="groupList"></div>
-
+                            <div id="groupList" style="padding:10px 0"></div>
                         </div>
 
                         <div id="office" class="tab" style="display:none">
@@ -438,12 +434,6 @@
                         </div>
                     </div>
 
-                    <div class="teamfinder-dash" id="teamfinderDash">
-                        <h3>Find teammates (TeamFinder)</h3>
-                        <p style="margin:0 0 12px;font-size:14px;color:#888">Open team listings from your dashboard. Post or filter on the full TeamFinder page.</p>
-                        <div id="teamRequestsDashList"></div>
-                        <p style="margin:12px 0 0"><a href="teamup.html" style="color:#1e78de;font-size:14px">Open full TeamFinder</a></p>
-                    </div>
 
                 </div>
 
@@ -479,26 +469,31 @@
             }
             btn.classList.add("active");
 
-            renderTab(cityName);
+            // group tab uses its own renderer, not the generic row-based one
+            if (cityName === 'group') {
+                renderGroupMeetings(cachedGroupMeetings);
+            } else {
+                renderTab(cityName);
+            }
         }
 
         // Backend-delivered appointments, bucketed by slot_type.
         // Fetched by `loadAppointments()`.
-        const buckets = { meetings: [], group: [], office: [] };
+        const buckets = { meetings: [], office: [] };
+        let cachedGroupMeetings = [];
         let dashUserId = null;
 
         async function loadAppointments() {
             const data = await API.get('/dashboard');
-            const { appointments, teamRequestsOpen } = data;
+            const { appointments, groupMeetings } = data;
             buckets.meetings = [];
-            buckets.group = [];
             buckets.office = [];
 
             appointments.forEach(a => {
-                // Only show booked or active — skip drafts (students can't see draft anyway)
                 const entry = {
                     slotId: a.slotId,
                     date: a.date,
+                    endTime: a.endTime ? a.endTime.slice(0, 8) : null,
                     time: `${a.startTime.slice(0,5)}-${a.endTime.slice(0,5)}`,
                     with: a.otherParty ? a.otherParty.name : '—',
                     email: a.otherParty ? a.otherParty.email : '',
@@ -506,19 +501,136 @@
                     canCancel: a.canCancel,
                     type: a.slotType,
                 };
-                if (a.slotType === 'group_meeting') {
-                    buckets.group.push(entry);
-                } else if (a.slotType === 'meeting_request') {
+                if (a.slotType === 'meeting_request') {
                     buckets.meetings.push(entry);
-                } else {
+                } else if (a.slotType !== 'group_meeting') {
                     buckets.office.push(entry);
                 }
             });
 
+            cachedGroupMeetings = groupMeetings || [];
             renderTab('meetings');
-            renderTab('group');
             renderTab('office');
-            renderTeamRequestsDash(teamRequestsOpen || [], dashUserId);
+            renderGroupMeetings(cachedGroupMeetings);
+        }
+
+        function renderGroupMeetings(meetings) {
+            const container = document.getElementById('groupList');
+            container.innerHTML = '';
+
+            if (!meetings.length) {
+                container.innerHTML = '<p style="color:#888;font-size:14px;padding:12px">No group meetings yet.</p>';
+                return;
+            }
+
+            meetings.forEach(gm => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:#f9f9f9;border:1px solid #e5e5e5;border-radius:10px;padding:14px 18px;margin-bottom:10px';
+
+                const isVoting = gm.status === 'voting';
+
+                // status badge
+                let statusBadge = '';
+                if (!isVoting) {
+                    statusBadge = `<span style="margin-left:8px;font-size:12px;padding:2px 8px;border-radius:10px;background:#2a9d2a;color:white">Finalized</span>`;
+                } else if (gm.hasVoted) {
+                    statusBadge = `<span style="margin-left:8px;font-size:12px;padding:2px 8px;border-radius:10px;background:#f0a500;color:white">Voted</span>`;
+                } else {
+                    statusBadge = `<span style="margin-left:8px;font-size:12px;padding:2px 8px;border-radius:10px;background:#1e78de;color:white">Vote needed</span>`;
+                }
+
+                let subtext = '';
+                if (isVoting && gm.hasVoted) {
+                    subtext = `<div style="font-size:12px;color:#888;margin-top:3px">You have voted. You can update your selection.</div>`;
+                } else if (isVoting && !gm.hasVoted) {
+                    subtext = `<div style="font-size:12px;color:#b22d0a;margin-top:3px">You have not voted yet.</div>`;
+                } else if (!isVoting && gm.finalizedDate) {
+                    subtext = `<div style="font-size:13px;color:#444;margin-top:3px">
+                        Chosen time: <b>${gm.finalizedDate}</b> &middot; ${gm.finalizedStart}–${gm.finalizedEnd}
+                        ${gm.isRecurring ? `<span style="color:#888">(repeats ${gm.recurWeeks} week(s))</span>` : ''}
+                    </div>`;
+                }
+
+                const actionBtn = isVoting
+                    ? `<button onclick="window.location.href='group-poll-vote.html?pollId=${gm.id}'"
+                               style="padding:6px 14px;border:1px solid #1e78de;color:#1e78de;background:white;border-radius:6px;cursor:pointer;font-size:13px">
+                           ${gm.hasVoted ? 'Edit votes' : 'Vote now'}
+                       </button>`
+                    : `<button onclick="window.location.href='mailto:${gm.ownerEmail}'"
+                               style="padding:6px 14px;border:1px solid #ccc;color:#555;background:white;border-radius:6px;cursor:pointer;font-size:13px">
+                           Email organizer
+                       </button>`;
+
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                        <div>
+                            <span style="font-weight:600;font-size:15px">${gm.title}</span>
+                            ${statusBadge}
+                            <div style="font-size:13px;color:#666;margin-top:3px">
+                                Organized by
+                                <a href="mailto:${gm.ownerEmail}" style="color:#1e78de;text-decoration:none">${gm.ownerName}</a>
+                            </div>
+                            ${subtext}
+                        </div>
+                        <div style="flex-shrink:0;margin-left:12px;display:flex;gap:8px;align-items:center">
+                            <button id="gm-members-btn-${gm.id}"
+                                    onclick="toggleGmMembers(${gm.id})"
+                                    style="padding:6px 12px;border:1px solid #ccc;color:#555;background:white;border-radius:6px;cursor:pointer;font-size:13px">
+                                Members ▾
+                            </button>
+                            ${actionBtn}
+                        </div>
+                    </div>
+                    <div id="gm-members-panel-${gm.id}"
+                         data-owner-name="${gm.ownerName}"
+                         data-owner-email="${gm.ownerEmail}"
+                         style="display:none;margin-top:10px;padding:10px 12px;background:#fff;border:1px solid #e5e5e5;border-radius:8px;font-size:13px">
+                        <em style="color:#aaa">Loading…</em>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function toggleGmMembers(gmId) {
+            const panel = document.getElementById(`gm-members-panel-${gmId}`);
+            const btn = document.getElementById(`gm-members-btn-${gmId}`);
+            if (panel.style.display !== 'none') {
+                panel.style.display = 'none';
+                btn.textContent = 'Members ▾';
+                return;
+            }
+            panel.style.display = 'block';
+            btn.textContent = 'Members ▴';
+
+            if (panel.dataset.loaded) return;
+            panel.dataset.loaded = '1';
+
+            try {
+                const data = await API.get(`/group-meetings/${gmId}`);
+                const meeting = data.meeting;
+                const ownerName = panel.dataset.ownerName;
+                const ownerEmail = panel.dataset.ownerEmail;
+
+                const others = (meeting.participants || []).filter(p => p.userId !== dashUserId);
+
+                const makeRow = (name, email, tag = '') => `
+                    <div style="padding:5px 0;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center">
+                        <span>${name}${tag ? ` <span style="font-size:11px;color:#888;margin-left:4px">${tag}</span>` : ''}</span>
+                        <a href="mailto:${email}" style="color:#1e78de;font-size:12px;text-decoration:none">${email}</a>
+                    </div>`;
+
+                const rows = [makeRow(ownerName, ownerEmail, '(organizer)')];
+                others.forEach(p => {
+                    const name = [p.firstName, p.lastName].filter(Boolean).join(' ') || p.email;
+                    rows.push(makeRow(name, p.email));
+                });
+
+                panel.innerHTML = rows.join('');
+            } catch (e) {
+                panel.innerHTML = `<span style="color:#b22d0a">Could not load members.</span>`;
+                panel.dataset.loaded = '';
+            }
         }
 
         function renderTeamRequestsDash(requests, userId) {
@@ -639,7 +751,8 @@
 
                 const actions = [];
                 if (m.email) actions.push(`<button onclick="sendEmail('${m.email}')">Email</button>`);
-                if (m.canCancel) actions.push(`<button onclick="cancelBooking(${m.slotId})">Cancel</button>`);
+                const isPast = m.endTime && (new Date(`${m.date}T${m.endTime}`) < new Date());
+                if (m.canCancel && !isPast) actions.push(`<button onclick="cancelBooking(${m.slotId})">Cancel</button>`);
 
                 row.innerHTML = `
                     <div>${m.date}</div>
@@ -680,6 +793,18 @@
         }
 
         init();
+
+        // fade out before navigating so sidebar clicks don't flash
+        document.querySelectorAll('.slide a[href]').forEach(a => {
+            a.addEventListener('click', e => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                document.body.style.transition = 'opacity 0.15s ease';
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = href; }, 150);
+            });
+        });
     </script>
 </body>
 </html>

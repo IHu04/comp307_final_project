@@ -11,6 +11,12 @@
     body {
         margin: 0;
         background-color: lightgray;
+        animation: pagein 0.15s ease;
+    }
+
+    @keyframes pagein {
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 
     .container {
@@ -310,6 +316,103 @@
             color: #ED1B2F;
         }
 
+        .poll-card {
+            border: 1px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            background: #fafafa;
+        }
+
+        .poll-card h4 {
+            margin: 0 0 10px;
+            font-size: 15px;
+        }
+
+        .poll-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 7px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+
+        .poll-option:hover { border-color: #1e78de; }
+        .poll-option.selected { border-color: #ED1B2F; background: #fff5f5; }
+
+        .poll-option .opt-votes {
+            font-size: 12px;
+            color: white;
+            background: #1e78de;
+            border-radius: 10px;
+            padding: 2px 8px;
+            white-space: nowrap;
+        }
+
+        .poll-option .vote-bar {
+            flex: 1;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .poll-option .vote-bar-fill {
+            height: 100%;
+            background: #1e78de;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .finalize-form {
+            margin-top: 12px;
+            padding: 12px 14px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .finalize-form label {
+            font-size: 13px;
+            color: #333;
+        }
+
+        .finalize-form .fin-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .btn-finalize {
+            padding: 7px 16px;
+            background: #ED1B2F;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-finalize:hover { background: #b22d0a; }
+        .btn-finalize:disabled { background: #ccc; cursor: not-allowed; }
+
+        .btn-cancel-fin {
+            padding: 7px 14px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+        }
+
 </style>
 
 <body>
@@ -443,12 +546,15 @@
 
                     </div>
 
-                    <div class="teamfinder-dash" id="teamfinderDash">
-                        <h3>Find teammates (TeamFinder)</h3>
-                        <p style="margin:0 0 12px;font-size:14px;color:#888">Open team listings from your dashboard. Post or filter on the full TeamFinder page.</p>
-                        <div id="teamRequestsDashList"></div>
-                        <p style="margin:12px 0 0"><a href="teamup.html" style="color:#1e78de;font-size:14px">Open full TeamFinder</a></p>
+                    <!-- group polls waiting to be finalized -->
+                    <div id="groupPollsSection" style="margin-top:28px;display:none">
+                        <div style="background:white;border-radius:15px;padding:16px 18px 20px;box-shadow:0 4px 10px rgba(0,0,0,0.2)">
+                            <h3 style="margin:0 0 4px;font-size:1.1rem">Group Meeting Polls</h3>
+                            <p style="margin:0 0 14px;font-size:13px;color:#888">These polls are open for voting. Review the results and finalize when ready.</p>
+                            <div id="groupPollsList"></div>
+                        </div>
                     </div>
+
 
                 </div>
 
@@ -493,7 +599,7 @@
 
         async function loadAll() {
             const data = await API.get('/dashboard');
-            const { appointments, teamRequestsOpen } = data;
+            const { appointments, groupPollsPending } = data;
             buckets.meetings = [];
             buckets.active = [];
             buckets.inactive = [];
@@ -507,6 +613,8 @@
                     email: a.otherParty ? a.otherParty.email : '',
                     where: ' ',
                     status: a.status,
+                    slotType: a.slotType,
+                    groupMeetingId: a.groupMeetingId || null,
                 };
                 if (a.status === 'booked') buckets.meetings.push(entry);
                 else if (a.status === 'active') buckets.active.push(entry);
@@ -516,7 +624,136 @@
             renderTab('meetings');
             renderTab('active');
             renderTab('inactive');
-            renderTeamRequestsDash(teamRequestsOpen || [], dashUserId);
+            renderGroupPolls(groupPollsPending || []);
+        }
+
+        function renderGroupPolls(polls) {
+            const section = document.getElementById('groupPollsSection');
+            const list = document.getElementById('groupPollsList');
+            list.innerHTML = '';
+
+            if (!polls.length) {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = 'block';
+
+            polls.forEach(poll => {
+                const maxVotes = Math.max(...poll.options.map(o => o.voteCount), 1);
+                let selectedOptionId = null;
+
+                const card = document.createElement('div');
+                card.className = 'poll-card';
+
+                const optionsHtml = poll.options.map(opt => {
+                    const pct = Math.round((opt.voteCount / maxVotes) * 100);
+                    return `
+                        <div class="poll-option" id="opt-${poll.id}-${opt.id}"
+                             onclick="selectOption(${poll.id}, ${opt.id})">
+                            <div style="flex:1;min-width:0">
+                                <div style="font-size:13px;font-weight:600">${opt.date}</div>
+                                <div style="font-size:12px;color:#666">${opt.startTime} – ${opt.endTime}</div>
+                            </div>
+                            <span class="opt-votes">${opt.voteCount} vote${opt.voteCount !== 1 ? 's' : ''}</span>
+                            <div class="vote-bar">
+                                <div class="vote-bar-fill" style="width:${pct}%"></div>
+                            </div>
+                        </div>`;
+                }).join('');
+
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                        <h4 style="margin:0">${poll.title}
+                            <span style="font-size:12px;font-weight:normal;color:#888;margin-left:6px">${poll.options.length} option(s)</span>
+                        </h4>
+                        <button onclick="deleteGroupMeeting(${poll.id})"
+                                style="background:none;border:1px solid #d9534f;color:#d9534f;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;white-space:nowrap;margin-left:12px">
+                            Delete Poll
+                        </button>
+                    </div>
+                    <p style="font-size:12px;color:#888;margin:0 0 8px">Click an option to select it, then finalize.</p>
+                    ${optionsHtml}
+                    <div class="finalize-form" id="fin-form-${poll.id}">
+                        <label>
+                            <input type="checkbox" id="fin-recur-${poll.id}"> Recurring
+                            &nbsp; Repeat for
+                            <select id="fin-weeks-${poll.id}" style="padding:3px 6px;border-radius:5px;border:1px solid #ccc">
+                                ${[1,2,3,4,5,6,7,8,10,12].map(n => `<option value="${n}">${n}</option>`).join('')}
+                            </select>
+                            weeks
+                        </label>
+                        <div class="fin-actions">
+                            <button class="btn-finalize" id="fin-btn-${poll.id}"
+                                    onclick="finalizeGroupMeeting(${poll.id})">
+                                Finalize
+                            </button>
+                            <button class="btn-cancel-fin" onclick="cancelFinalize(${poll.id})">Cancel</button>
+                            <span id="fin-err-${poll.id}" style="font-size:12px;color:#b22d0a"></span>
+                        </div>
+                    </div>
+                `;
+
+                // store selected option per poll in a data attribute
+                card.dataset.selectedOption = '';
+                list.appendChild(card);
+            });
+        }
+
+        function selectOption(pollId, optionId) {
+            // deselect all options in this poll
+            document.querySelectorAll(`[id^="opt-${pollId}-"]`).forEach(el => el.classList.remove('selected'));
+            // select the clicked one
+            document.getElementById(`opt-${pollId}-${optionId}`).classList.add('selected');
+            // show finalize form
+            document.getElementById(`fin-form-${pollId}`).style.display = 'block';
+            // store the selection on the form element
+            document.getElementById(`fin-form-${pollId}`).dataset.optionId = optionId;
+        }
+
+        function cancelFinalize(pollId) {
+            document.querySelectorAll(`[id^="opt-${pollId}-"]`).forEach(el => el.classList.remove('selected'));
+            document.getElementById(`fin-form-${pollId}`).style.display = 'none';
+        }
+
+        async function deleteGroupMeeting(pollId) {
+            if (!confirm('Delete this group meeting poll? Participants will be notified.')) return;
+            try {
+                const data = await API.del(`/group-meetings/${pollId}`);
+                if (data && data.notifyParticipantsMailto) window.open(data.notifyParticipantsMailto, '_blank');
+                await loadAll();
+            } catch (e) { alert('Could not delete: ' + e.message); }
+        }
+
+        async function finalizeGroupMeeting(pollId) {
+            const form = document.getElementById(`fin-form-${pollId}`);
+            const optionId = parseInt(form.dataset.optionId, 10);
+            const isRecurring = document.getElementById(`fin-recur-${pollId}`).checked;
+            const recurWeeks = parseInt(document.getElementById(`fin-weeks-${pollId}`).value, 10);
+            const btn = document.getElementById(`fin-btn-${pollId}`);
+            const err = document.getElementById(`fin-err-${pollId}`);
+
+            err.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'Finalizing...';
+
+            try {
+                const res = await API.patch(`/group-meetings/${pollId}/finalize`, {
+                    selectedOptionId: optionId,
+                    isRecurring,
+                    recurWeeks,
+                });
+                if (res && res.notifyOwnerMailto) {
+                    window.open(res.notifyOwnerMailto, '_blank');
+                }
+                if (res && res.notifyParticipantsMailto) {
+                    window.open(res.notifyParticipantsMailto, '_blank');
+                }
+                await loadAll();
+            } catch (e) {
+                err.textContent = e.message || 'Could not finalize.';
+                btn.disabled = false;
+                btn.textContent = 'Finalize';
+            }
         }
 
         function renderTeamRequestsDash(requests, userId) {
@@ -633,6 +870,8 @@
             }
 
             items.forEach(m => {
+                const wrapper = document.createElement('div');
+
                 const row = document.createElement('div');
                 row.className = 'row';
                 let actions = '';
@@ -645,7 +884,7 @@
                 if (type === 'meetings') {
                     actions = `
                         ${m.email ? `<button onclick="sendEmail('${m.email}')">Email</button>` : ''}
-                        <button onclick="showInvite()">Get URL</button>
+                        ${m.groupMeetingId ? `<button onclick="toggleMembers(${m.groupMeetingId}, this)">Members ▾</button>` : ''}
                         <button onclick="deleteSlot(${m.slotId})">Cancel</button>
                     `;
                 }
@@ -663,12 +902,56 @@
                     <div>${m.where}</div>
                     <div>${actions}</div>
                 `;
-                container.appendChild(row);
+
+                // participant dropdown panel, hidden by default
+                const panel = document.createElement('div');
+                panel.id = `members-panel-${m.groupMeetingId || m.slotId}`;
+                panel.style.cssText = 'display:none;background:#f5f5f5;border-top:1px solid #e0e0e0;padding:10px 16px;font-size:13px';
+
+                wrapper.appendChild(row);
+                wrapper.appendChild(panel);
+                container.appendChild(wrapper);
             });
         }
 
         function sendEmail(email) {
             window.location.href = `mailto:${email}`;
+        }
+
+        async function toggleMembers(groupMeetingId, btn) {
+            const panel = document.getElementById(`members-panel-${groupMeetingId}`);
+            if (panel.style.display !== 'none') {
+                panel.style.display = 'none';
+                btn.textContent = 'Members ▾';
+                return;
+            }
+
+            btn.textContent = 'Members ▴';
+            panel.style.display = 'block';
+
+            if (panel.dataset.loaded) return; // already fetched, just show it
+
+            panel.innerHTML = '<em style="color:#888">Loading...</em>';
+            try {
+                const data = await API.get(`/group-meetings/${groupMeetingId}`);
+                const participants = data.meeting.participants || [];
+                if (!participants.length) {
+                    panel.innerHTML = '<span style="color:#888">No participants listed.</span>';
+                } else {
+                    panel.innerHTML = `
+                        <div style="font-weight:600;margin-bottom:6px;color:#444">Participants (${participants.length})</div>
+                        ${participants.map(p => `
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee">
+                                <span>${p.name}</span>
+                                <a href="mailto:${p.email}" style="color:#1e78de;font-size:12px">${p.email}</a>
+                            </div>
+                        `).join('')}
+                    `;
+                }
+                panel.dataset.loaded = '1';
+            } catch (e) {
+                panel.innerHTML = `<span style="color:#b22d0a">Could not load members: ${e.message}</span>`;
+            }
         }
 
         async function activateSlot(id) {
@@ -686,6 +969,7 @@
             try {
                 const data = await API.del(`/slots/${id}`);
                 if (data && data.cancelMailto) window.open(data.cancelMailto, '_blank');
+                if (data && data.notifyParticipantsMailto) window.open(data.notifyParticipantsMailto, '_blank');
                 await loadAll();
             } catch (e) { alert('Could not delete: ' + e.message); }
         }
@@ -711,6 +995,18 @@
         }
 
         init();
+
+        // fade out before navigating so sidebar clicks don't flash
+        document.querySelectorAll('.slide a[href]').forEach(a => {
+            a.addEventListener('click', e => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                document.body.style.transition = 'opacity 0.15s ease';
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = href; }, 150);
+            });
+        });
     </script>
 </body>
 </html>

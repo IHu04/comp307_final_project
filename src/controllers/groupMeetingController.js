@@ -1,7 +1,7 @@
-// type 2 booking: group meeting time polls
-// owner creates meeting with time options and participant emails
+// group meeting time polls (type 2 booking)
+// owner creates a meeting with time options and participant emails
 // students vote or retract votes; owner finalizes and creates booking_slots rows
-// recurring finalize repeats the chosen slot across recur_weeks consecutive weeks
+// recurring finalize repeats the chosen slot across recur_weeks weeks
 import { DateTime } from 'luxon';
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -117,7 +117,7 @@ export const createGroupMeeting = asyncHandler(async (req, res) => {
   );
   const foundByEmail = new Map(userRows.map((u) => [String(u.email).toLowerCase(), u.id]));
   const unknownEmails = participantEmails.filter((e) => !foundByEmail.has(e));
-  // unknown emails are skipped with a warning instead of failing the whole create
+  // unknown emails are skipped with a warning rather than failing the whole request
 
   const participantUserIds = participantEmails
     .map((e) => foundByEmail.get(e))
@@ -302,7 +302,7 @@ export const voteOnGroupMeeting = asyncHandler(async (req, res) => {
       });
     }
 
-    // replace votes with the posted set: delete votes not in ids, insert missing rows, ignore duplicates
+    // replace the user's votes with the posted set: remove old ones not in ids, insert new ones
     await connection.query(
       `DELETE gmv FROM group_meeting_votes gmv
        INNER JOIN group_meeting_options gmo ON gmo.id = gmv.option_id
@@ -312,7 +312,7 @@ export const voteOnGroupMeeting = asyncHandler(async (req, res) => {
     );
 
     for (const optId of ids) {
-      // insert ignore avoids errors when the vote row already exists
+      // insert ignore skips silently if the vote row already exists
       await connection.query(
         `INSERT IGNORE INTO group_meeting_votes (option_id, user_id) VALUES (?, ?)`,
         [optId, userId]
@@ -437,14 +437,28 @@ export const finalizeGroupMeeting = asyncHandler(async (req, res) => {
       [meetingId]
     );
 
+    const [ownerRows] = await connection.query(
+      'SELECT email, first_name, last_name FROM users WHERE id = ? LIMIT 1',
+      [ownerId]
+    );
+
     await connection.commit();
 
+    const ownerEmail = ownerRows[0]?.email || '';
+    const ownerName = fullName(ownerRows[0]?.first_name, ownerRows[0]?.last_name);
+    const timeDesc = `${dateStr} from ${String(st).slice(0, 5)} to ${String(et).slice(0, 5)}${isRecurring ? ` (${weeksToCreate} week(s))` : ''}`;
+
     const emails = participants.map((p) => p.email).filter(Boolean);
-    const toList = emails.join(',');
     const notifyParticipantsMailto = buildMailtoUri(
-      toList,
+      emails.join(','),
       `McGill Bookings — group meeting finalized: ${gm.title || 'Meeting'}`,
-      `The organizer picked ${dateStr} from ${String(st).slice(0, 5)} to ${String(et).slice(0, 5)}${isRecurring ? ` (${weeksToCreate} week(s))` : ''}.\nSee your dashboard for details.`
+      `The organizer picked ${timeDesc}.\nSee your dashboard for details.`
+    );
+
+    const notifyOwnerMailto = buildMailtoUri(
+      ownerEmail,
+      `McGill Bookings — group meeting confirmed: ${gm.title || 'Meeting'}`,
+      `Hi ${ownerName},\n\nYour group meeting "${gm.title || 'Meeting'}" has been finalized.\n\nTime: ${timeDesc}\nParticipants: ${emails.join(', ') || 'none'}\n\nThis is your confirmation.`
     );
 
     const meeting = await loadMeetingDetail(meetingId, ownerId);
@@ -453,6 +467,7 @@ export const finalizeGroupMeeting = asyncHandler(async (req, res) => {
       {
         meeting,
         notifyParticipantsMailto,
+        notifyOwnerMailto,
       },
       200,
       'Meeting finalized'
@@ -465,7 +480,7 @@ export const finalizeGroupMeeting = asyncHandler(async (req, res) => {
   }
 });
 
-// delete all votes for this meeting from the current user
+// removes all votes the current user cast on this meeting
 export const retractVote = asyncHandler(async (req, res) => {
   const meetingId = req.params.id;
   const userId = req.session.userId;
@@ -493,4 +508,71 @@ export const retractVote = asyncHandler(async (req, res) => {
 
   const meeting = await loadMeetingDetail(meetingId, userId);
   sendOk(res, { meeting }, 200, 'Votes retracted');
+});
+
+export const cancelGroupMeeting = asyncHandler(async (req, res) => {
+  const meetingId = req.params.id;
+  const ownerId = req.session.userId;
+
+  const [gm] = await pool.query(
+    `SELECT gm.id, gm.title, gm.status,
+            gmo.date, gmo.start_time, gmo.end_time
+     FROM group_meetings gm
+     LEFT JOIN group_meeting_options gmo ON gmo.group_meeting_id = gm.id
+     WHERE gm.id = ? AND gm.owner_id = ?
+     LIMIT 1`,
+    [meetingId, ownerId]
+  );
+  if (!gm.length) {
+    return res.status(404).json({ success: false, message: 'Meeting not found' });
+  }
+  const meeting = gm[0];
+  if (meeting.status === 'cancelled') {
+    return res.status(409).json({ success: false, message: 'Meeting already cancelled' });
+  }
+
+  // fetch participant emails for notification
+  const [parts] = await pool.query(
+    `SELECT u.email FROM group_meeting_participants p
+     INNER JOIN users u ON p.user_id = u.id
+     WHERE p.group_meeting_id = ?`,
+    [meetingId]
+  );
+  const emails = parts.map((p) => p.email).filter(Boolean);
+
+  const dateStr = meeting.date ? formatDateOnly(meeting.date) : null;
+  const timeStr = meeting.start_time ? String(meeting.start_time).slice(0, 5) : null;
+  const title = meeting.title || 'Group Meeting';
+
+  let notifyParticipantsMailto = null;
+  if (emails.length) {
+    const body = dateStr && timeStr
+      ? `The group meeting "${title}" scheduled for ${dateStr} at ${timeStr} has been cancelled by the organizer.`
+      : `The group meeting "${title}" has been cancelled by the organizer.`;
+    notifyParticipantsMailto = buildMailtoUri(
+      emails.join(','),
+      `McGill Bookings — group meeting cancelled: ${title}`,
+      body
+    );
+  }
+
+  // mark meeting cancelled and delete any associated booking_slots
+  await pool.query(
+    `UPDATE group_meetings SET status = 'cancelled' WHERE id = ?`,
+    [meetingId]
+  );
+  await pool.query(
+    `DELETE FROM booking_slots WHERE group_meeting_id = ?`,
+    [meetingId]
+  );
+
+  sendOk(
+    res,
+    {
+      cancelled: true,
+      ...(notifyParticipantsMailto && { notifyParticipantsMailto }),
+    },
+    200,
+    'Group meeting cancelled'
+  );
 });

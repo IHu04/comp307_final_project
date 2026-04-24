@@ -1,6 +1,6 @@
-// type 1 booking: direct meeting requests between student and owner
-// student creates pending request; owner accepts with date and time or declines
-// accept inserts booking_slots and returns a mailto so the owner can email the student
+// direct meeting requests between student and owner (type 1 booking)
+// student creates a pending request; owner accepts with a date and time or declines
+// accepting inserts a booking_slots row and returns a mailto link for the owner to notify the student
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk, sendCreated } from '../utils/apiResponse.js';

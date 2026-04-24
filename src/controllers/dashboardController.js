@@ -1,8 +1,8 @@
 // dashboard json by role and ics export for the current user
-// get /api/dashboard: owner sees their slots and pending items; student sees bookings and groups
-// get /api/appointments/export: streams an ics file for calendar apps
+// owner sees their slots and pending items; student sees bookings and groups
+// the /appointments/export route streams an ics file for calendar apps
 import { webcrypto } from 'crypto';
-// ical-generator expects crypto.randomUUID; node 18 esm may not expose crypto as a bare global
+// ical-generator needs crypto.randomUUID; node 18 esm may not expose it as a global
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 
 import ical from 'ical-generator';
@@ -43,10 +43,15 @@ function mapStudentRow(row) {
 }
 
 function mapOwnerSlotRow(row) {
+  const isGroupMeeting = row.slot_type === 'group_meeting';
   const booked = row.status === 'booked' && row.booked_by;
   let otherParty = null;
   let mailtoUri = null;
-  if (booked && row.booker_email) {
+
+  if (isGroupMeeting) {
+    // group meeting slots have no single booker — show the meeting title instead
+    otherParty = { name: row.gm_title || 'Group Meeting', email: null };
+  } else if (booked && row.booker_email) {
     const bookerName = fullName(row.booker_fn, row.booker_ln);
     otherParty = { name: bookerName, email: row.booker_email };
     mailtoUri = buildMailtoUri(
@@ -55,12 +60,15 @@ function mapOwnerSlotRow(row) {
       `Hello,\n\nRegarding the slot on ${formatDateOnly(row.date)}.\n`
     );
   }
+
   return {
     slotId: row.id,
     date: formatDateOnly(row.date),
     startTime: String(row.start_time).slice(0, 8),
     endTime: String(row.end_time).slice(0, 8),
     status: row.status,
+    slotType: row.slot_type,
+    groupMeetingId: row.group_meeting_id || null,
     otherParty,
     mailtoUri,
     canCancel: Boolean(booked),
@@ -103,10 +111,13 @@ export const getDashboard = asyncHandler(async (req, res) => {
 
   if (isOwner) {
     const [slots] = await pool.query(
-      `SELECT s.id, s.date, s.start_time, s.end_time, s.status, s.booked_by,
-              b.first_name AS booker_fn, b.last_name AS booker_ln, b.email AS booker_email
+      `SELECT s.id, s.date, s.start_time, s.end_time, s.status, s.slot_type,
+              s.booked_by, s.group_meeting_id,
+              b.first_name AS booker_fn, b.last_name AS booker_ln, b.email AS booker_email,
+              gm.title AS gm_title
        FROM booking_slots s
        LEFT JOIN users b ON s.booked_by = b.id
+       LEFT JOIN group_meetings gm ON gm.id = s.group_meeting_id
        WHERE s.owner_id = ?
        ORDER BY s.date ASC, s.start_time ASC`,
       [userId]
@@ -136,16 +147,47 @@ export const getDashboard = asyncHandler(async (req, res) => {
       },
     }));
 
+    // group meetings the owner created that are still open for voting
+    const [gmRows] = await pool.query(
+      `SELECT gm.id, gm.title,
+              gmo.id AS opt_id, gmo.date, gmo.start_time, gmo.end_time,
+              COUNT(gmv.id) AS vote_count
+       FROM group_meetings gm
+       INNER JOIN group_meeting_options gmo ON gmo.group_meeting_id = gm.id
+       LEFT JOIN group_meeting_votes gmv ON gmv.option_id = gmo.id
+       WHERE gm.owner_id = ? AND gm.status = 'voting'
+       GROUP BY gm.id, gm.title, gmo.id, gmo.date, gmo.start_time, gmo.end_time
+       ORDER BY gm.id DESC, vote_count DESC, gmo.date ASC, gmo.start_time ASC`,
+      [userId]
+    );
+
+    // group rows by meeting id
+    const pollMap = new Map();
+    for (const r of gmRows) {
+      if (!pollMap.has(r.id)) {
+        pollMap.set(r.id, { id: r.id, title: r.title || 'Group Meeting', options: [] });
+      }
+      pollMap.get(r.id).options.push({
+        id: r.opt_id,
+        date: formatDateOnly(r.date),
+        startTime: String(r.start_time).slice(0, 5),
+        endTime: String(r.end_time).slice(0, 5),
+        voteCount: Number(r.vote_count),
+      });
+    }
+    const groupPollsPending = Array.from(pollMap.values());
+
     sendOk(res, {
       isOwner: true,
       appointments: slots.map(mapOwnerSlotRow),
       meetingRequestsPending,
+      groupPollsPending,
       teamRequestsOpen,
     });
     return;
   }
 
-  // student view: own bookings plus group meeting slots where they are a participant (booked_by null on those)
+  // student: own booked slots plus group meeting slots where they are a listed participant
   const [slots] = await pool.query(
     `SELECT s.id, s.date, s.start_time, s.end_time, s.status,
             o.first_name AS owner_fn, o.last_name AS owner_ln, o.email AS owner_email
@@ -168,10 +210,50 @@ export const getDashboard = asyncHandler(async (req, res) => {
     [userId, userId]
   );
 
+  // group meetings the student has been invited to (voting or finalized)
+  // has_voted is 1 if the user cast any vote on any option in this meeting
+  const [groupMeetingRows] = await pool.query(
+    `SELECT gm.id, gm.title, gm.status,
+            gm.finalized_date, gm.finalized_start, gm.finalized_end,
+            gm.is_recurring, gm.recur_weeks,
+            u.first_name AS owner_fn, u.last_name AS owner_ln, u.email AS owner_email,
+            EXISTS (
+              SELECT 1 FROM group_meeting_votes gmv
+              INNER JOIN group_meeting_options gmo ON gmo.id = gmv.option_id
+              WHERE gmo.group_meeting_id = gm.id AND gmv.user_id = ?
+            ) AS has_voted
+     FROM group_meetings gm
+     INNER JOIN users u ON gm.owner_id = u.id
+     INNER JOIN group_meeting_participants gmp ON gmp.group_meeting_id = gm.id
+     WHERE gmp.user_id = ?
+       AND gm.status IN ('voting', 'finalized')
+       AND (
+         gm.status = 'voting'
+         OR TIMESTAMP(gm.finalized_date, gm.finalized_end) > NOW()
+       )
+     ORDER BY gm.id DESC`,
+    [userId, userId]
+  );
+
+  const groupMeetings = groupMeetingRows.map((gm) => ({
+    id: gm.id,
+    title: gm.title || 'Group Meeting',
+    status: gm.status,
+    ownerName: fullName(gm.owner_fn, gm.owner_ln),
+    ownerEmail: gm.owner_email,
+    finalizedDate: gm.finalized_date ? formatDateOnly(gm.finalized_date) : null,
+    finalizedStart: gm.finalized_start ? String(gm.finalized_start).slice(0, 5) : null,
+    finalizedEnd: gm.finalized_end ? String(gm.finalized_end).slice(0, 5) : null,
+    isRecurring: Boolean(gm.is_recurring),
+    recurWeeks: gm.recur_weeks,
+    hasVoted: Boolean(gm.has_voted),
+  }));
+
   sendOk(res, {
     isOwner: false,
     appointments: slots.map(mapStudentRow),
     meetingRequestsPending: [],
+    groupMeetings,
     teamRequestsOpen,
   });
 });

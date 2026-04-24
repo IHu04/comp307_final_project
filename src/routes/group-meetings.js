@@ -12,6 +12,7 @@ import {
   voteOnGroupMeeting,
   retractVote,
   finalizeGroupMeeting,
+  cancelGroupMeeting,
 } from '../controllers/groupMeetingController.js';
 
 const router = Router();
@@ -66,6 +67,15 @@ router.patch(
   validate,
   isResourceOwner('group_meetings', 'id'),
   finalizeGroupMeeting
+);
+router.delete(
+  '/:id',
+  isAuthenticated,
+  isOwner,
+  meetingIdParam,
+  validate,
+  isResourceOwner('group_meetings', 'id'),
+  cancelGroupMeeting
 );
 
 export default router;

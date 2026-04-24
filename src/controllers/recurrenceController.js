@@ -1,6 +1,6 @@
-// type 3 booking: weekly recurrence patterns
-// create: inserts draft booking_slots per generated week so the owner can bulk activate
-// delete: removes draft or active slots for the pattern; booked slots go back to active and return mailto links
+// weekly recurrence patterns (type 3 booking)
+// create inserts draft booking_slots for each generated week so the owner can bulk activate them
+// delete removes draft and active slots; booked slots are freed back to active with cancel mailto links
 import { DateTime } from 'luxon';
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -61,7 +61,7 @@ export const createRecurrencePatterns = asyncHandler(async (req, res) => {
     numWeeks = 52;
   }
 
-  // start date must be today or later in montreal local midnight
+  // start date must be today or later, checked against montreal local midnight
   const startDt = DateTime.fromISO(startDate, { zone: 'America/Montreal' }).startOf('day');
   if (!startDt.isValid || startDt < DateTime.now().setZone('America/Montreal').startOf('day')) {
     return res.status(422).json({
@@ -118,7 +118,7 @@ export const createRecurrencePatterns = asyncHandler(async (req, res) => {
       const dates = weeklyOccurrenceDates(startDate, p.dayOfWeek, numWeeks);
       for (const d of dates) {
         if (!slotStartsInFuture(d, p.start)) {
-          // skip times already passed when start date is today
+          // skip slots whose time has already passed (can happen when start date is today)
           continue;
         }
         if (await ownerHasOverlappingSlot(connection, ownerId, d, p.start, p.end)) {
@@ -201,7 +201,7 @@ export const deleteRecurrencePattern = asyncHandler(async (req, res) => {
       return res.status(404).json({ success: false, message: 'Pattern not found' });
     }
 
-    // snapshot booked slots before deletes so we can build cancel mailto links
+    // read booked slots before deleting so we can build cancel mailto links
     const [bookedSlots] = await connection.query(
       `SELECT s.id, s.date, s.start_time, u.email AS booker_email
        FROM booking_slots s
@@ -210,14 +210,14 @@ export const deleteRecurrencePattern = asyncHandler(async (req, res) => {
       [patternId]
     );
 
-    // remove draft and active slots tied to this pattern
+    // delete draft and active slots tied to this pattern
     const [delResult] = await connection.query(
       `DELETE FROM booking_slots
        WHERE recurrence_id = ? AND status IN ('draft', 'active')`,
       [patternId]
     );
 
-    // free booked slots back to active so students get a mailto cancel notice
+    // return booked slots to active so the owner can send cancel notices to students
     if (bookedSlots.length > 0) {
       const bookedIds = bookedSlots.map((s) => s.id);
       await connection.query(
@@ -232,7 +232,7 @@ export const deleteRecurrencePattern = asyncHandler(async (req, res) => {
 
     await connection.commit();
 
-    // one mailto per affected booker for the owner to send manually
+    // build one cancel mailto per affected booker for the owner to send manually
     const cancelMailtos = bookedSlots.map((s) => {
       const dateStr = formatDateOnly(s.date);
       const timeStr = String(s.start_time).slice(0, 5);
