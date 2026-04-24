@@ -69,7 +69,9 @@
     }
 
     .nav-right a:hover {
-        text-decoration: underline white;
+        border-radius: 2px;
+        background-color: white;
+        color:#ED1B2F;
     }
 
 
@@ -190,7 +192,8 @@
     }
 
     .button:hover {
-        background-color: #b22d0a;
+        background-color: white;
+        color: #ED1B2F;
     }
 
     .divider-red {
@@ -241,6 +244,7 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-decoration: none;
         }
 
         .feature-card:hover {
@@ -440,13 +444,13 @@
             
             <div class="nav-left">
                 <h2>McGiLL</h2>
-                <p>Bookings</p>
+                <p>McSlot</p>
             </div>
 
-            <div class="nav-right">
+            <div class="nav-right" id="auth-nav">
                 <a href="#home">Home</a>
                 <a href="#features">Services</a>
-                <a href="#about">About</a>>
+                <a href="#about">About</a>
             </div>
         </div>
 
@@ -456,13 +460,16 @@
             <div class="intro">
                 <img src="images/mcgill5.png" alt="McGiLL Campus"/>
            
-                <div class="text"><h2>Welcome to McGiLL Bookings</h2>
+                <div class="text"><h2>Welcome to McGiLL McSlot</h2>
                     <h3>Easily Schedule Meetings</h3>                
                     <p>Schedule meetings with professors, 
                     teaching assistants, and fellow students with our easy-to-use booking platform. </p>
 
+                    <div id="hero-buttons">
                         <a href="register.html" class="button">Register</a>
                         <a href="login.html" class="button">Login</a>
+                    </div>
+
              
                 </div>
             </div>   
@@ -524,7 +531,9 @@
 <script>
     (async function initHome() {
         const user = await API.getUser();
+        const authNav = document.getElementById('auth-nav');
         const cards = document.getElementById('fcards');
+        const heroButtons = document.getElementById('hero-buttons');
 
 
         // Student pages vs owner pages
@@ -533,6 +542,13 @@
 
         if (user) {
             const fn = user.firstName || '';
+            authNav.innerHTML = `
+                <a href="#home">Home</a>
+                <a href="#features">Services</a>
+                <a href="#about">About</a>
+                <a href="#" onclick="API.logout();return false;">Logout</a>
+
+            `;
             heroButtons.innerHTML = `
                 <a href="${dashHref}" class="button">My Dashboard</a>
                 <a href="${bookHref}" class="button">${user.isOwner ? 'Create a Slot' : 'Book a Slot'}</a>
@@ -540,6 +556,11 @@
             // Personalized greeting
             document.querySelector('.intro h2').textContent = `Welcome back${fn ? ', ' + fn : ''}!`;
         } else {
+            authNav.innerHTML = `
+                <a href="#home">Home</a>
+                <a href="#features">Services</a>
+                <a href="#about">About</a>
+            `;
 
         }
 
@@ -555,7 +576,7 @@
                     <a class="feature-card" href="${c.href}">
                         <div class="feature-icon">${c.icon}</div>
                         <div class="container1"><h3>${c.title}</h3></div>
-                        <div> class="container2"><p>${c.para}</p></div>
+                        <div class="container2"><p>${c.para}</p></div>
                     </a>
                 `).join('');
             }
