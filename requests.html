@@ -241,11 +241,24 @@
         }
 
         .row {
-    
             display: grid;
             grid-template-columns: 2fr 2fr 2fr 1fr 2fr;
             padding: 10px;
             border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .row.expanded {
+            grid-template-columns: 1fr;
+            border-bottom: none;
+        }
+
+        .row-main {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 2fr 2fr 2fr 1fr 2fr;
+            align-items: center;
+            gap: 8px;
         }
 
         .row button {
@@ -263,6 +276,68 @@
             border: 1px solid #ED1B2F;
             color:#ED1B2F;
         }
+
+        .accept-panel {
+            grid-column: 1 / -1;
+            background: #f5f8ff;
+            border: 1px solid #c4d4f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 6px 0 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .accept-panel label {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            color: #555;
+            font-weight: 600;
+            gap: 4px;
+        }
+
+        .accept-panel input {
+            padding: 6px 8px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+        }
+
+        .accept-panel input:focus {
+            outline: none;
+            border-color: #1e78de;
+        }
+
+        .btn-confirm-accept {
+            padding: 7px 16px;
+            background: #1e78de;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-confirm-accept:hover { background: #155faf; }
+
+        .btn-cancel-accept {
+            padding: 7px 14px;
+            background: white;
+            color: #555;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-cancel-accept:hover { border-color: #ED1B2F; color: #ED1B2F; }
+
+        .accept-err { font-size: 12px; color: #b22d0a; width: 100%; margin-top: -6px; }
 
 
 
@@ -409,19 +484,40 @@
             requests.forEach(r => {
                 const row = document.createElement("div");
                 row.className = "row";
+                row.id = `req-row-${r.id}`;
                 const requester = r.requester || {};
                 const name = (requester.firstName || '') + ' ' + (requester.lastName || '');
                 const email = requester.email || '';
                 const created = r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '';
+                // default date to today for convenience
+                const today = new Date().toISOString().slice(0, 10);
 
                 row.innerHTML = `
-                    <div>${created}</div>
-                    <div>${(r.message || '').replace(/</g,'&lt;').slice(0,60)}</div>
-                    <div>${name.trim() || email}</div>
-                    <div>${email}</div>
-                    <div>
-                        <button onclick="acceptRequest(${r.id}, '${email}')">Accept</button>
-                        <button onclick="declineRequest(${r.id})">Decline</button>
+                    <div class="row-main">
+                        <div>${created}</div>
+                        <div>${(r.message || '').replace(/</g,'&lt;').slice(0,60)}</div>
+                        <div>${name.trim() || email}</div>
+                        <div>${email}</div>
+                        <div>
+                            <button onclick="toggleAcceptPanel(${r.id}, '${email}')">Accept</button>
+                            <button onclick="declineRequest(${r.id})">Decline</button>
+                        </div>
+                    </div>
+                    <div class="accept-panel" id="accept-panel-${r.id}" style="display:none">
+                        <label>Date
+                            <input type="date" id="acc-date-${r.id}" min="${today}" value="${today}" />
+                        </label>
+                        <label>Start time
+                            <input type="time" id="acc-start-${r.id}" />
+                        </label>
+                        <label>End time
+                            <input type="time" id="acc-end-${r.id}" />
+                        </label>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <button class="btn-confirm-accept" onclick="submitAccept(${r.id}, '${email}')">Confirm</button>
+                            <button class="btn-cancel-accept" onclick="toggleAcceptPanel(${r.id})">Cancel</button>
+                        </div>
+                        <div class="accept-err" id="acc-err-${r.id}"></div>
                     </div>
                 `;
 
@@ -429,13 +525,26 @@
             });
         }
 
-        async function acceptRequest(id, email) {
-            const date = prompt("Meeting date (YYYY-MM-DD):");
-            if (!date) return;
-            const startTime = prompt("Start time (HH:MM, 24h):");
-            if (!startTime) return;
-            const endTime = prompt("End time (HH:MM, 24h):");
-            if (!endTime) return;
+        function toggleAcceptPanel(id) {
+            const panel = document.getElementById(`accept-panel-${id}`);
+            const row = document.getElementById(`req-row-${id}`);
+            const open = panel.style.display !== 'none';
+            panel.style.display = open ? 'none' : 'grid';
+            row.style.borderBottom = open ? '' : 'none';
+            document.getElementById(`acc-err-${id}`).textContent = '';
+        }
+
+        async function submitAccept(id, email) {
+            const date      = document.getElementById(`acc-date-${id}`).value;
+            const startTime = document.getElementById(`acc-start-${id}`).value;
+            const endTime   = document.getElementById(`acc-end-${id}`).value;
+            const err       = document.getElementById(`acc-err-${id}`);
+
+            err.textContent = '';
+            if (!date)      { err.textContent = 'Please pick a date.'; return; }
+            if (!startTime) { err.textContent = 'Please pick a start time.'; return; }
+            if (!endTime)   { err.textContent = 'Please pick an end time.'; return; }
+            if (endTime <= startTime) { err.textContent = 'End time must be after start time.'; return; }
 
             try {
                 const res = await API.patch(`/meeting-requests/${id}`, {
@@ -446,7 +555,7 @@
                 }
                 await loadRequests();
             } catch (e) {
-                alert('Could not accept: ' + e.message);
+                err.textContent = e.message || 'Could not accept.';
             }
         }
 
