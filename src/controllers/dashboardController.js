@@ -24,9 +24,12 @@ function mapStudentRow(row) {
     name: ownerName,
     email: row.owner_email,
   };
+  const subject = row.slot_type === 'meeting_request'
+    ? 'McGill Bookings — meeting request'
+    : 'McGill Bookings — office hours';
   const mailtoUri = buildMailtoUri(
     row.owner_email,
-    'McGill Bookings — office hours',
+    subject,
     `Hello,\n\nRegarding my booking on ${formatDateOnly(row.date)}.\n`
   );
   const booked = row.status === 'booked';
@@ -36,6 +39,7 @@ function mapStudentRow(row) {
     startTime: String(row.start_time).slice(0, 8),
     endTime: String(row.end_time).slice(0, 8),
     status: row.status,
+    slotType: row.slot_type,
     otherParty,
     mailtoUri,
     canCancel: booked,
@@ -189,7 +193,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
 
   // student: own booked slots plus group meeting slots where they are a listed participant
   const [slots] = await pool.query(
-    `SELECT s.id, s.date, s.start_time, s.end_time, s.status,
+    `SELECT s.id, s.date, s.start_time, s.end_time, s.status, s.slot_type,
             o.first_name AS owner_fn, o.last_name AS owner_ln, o.email AS owner_email
      FROM booking_slots s
      INNER JOIN users o ON s.owner_id = o.id
