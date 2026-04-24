@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Homepage</title>
+   
+    <title>Bookings</title>
 </head>
 <style>
     body {
         margin: 0;
+    }
+
+    html {
+        scroll-behavior: smooth;
     }
 
     .container {
@@ -24,6 +28,7 @@
         display: flex;
         background-color: #ED1B2F;
         padding: 0 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
     .topnav img {
         width: 35px;
@@ -47,23 +52,6 @@
         color: white;
     }
 
-    .nav-center {
-        display: flex;
-        align-items: center;
-        margin-left: 40px;
-    }
-
-    .nav-center a {
-        text-decoration: none;
-        font-size: 18px;
-        color: white;
-        padding: 14px 16px;
-    }
-
-    .nav-center a:hover {
-        text-decoration: underline white;
-    }
-
     .nav-right {
         display: flex;
         margin-left: auto;
@@ -77,7 +65,7 @@
         align-content: center;
         padding: 14px 16px;
         color: white;
-
+  
     }
 
     .nav-right a:hover {
@@ -85,16 +73,16 @@
     }
 
 
-
     .landing {
-        width: auto;
-        display: flex;
+        width: 100%;
+        position: relative;
+        scroll-margin-top: 100px;
 
     }
 
     .intro img {
-        width: 100vw;
-        height: 800px;
+        width: 100%;
+        height: 670px;
         object-fit: cover;
         display: block;
 
@@ -102,26 +90,29 @@
 
     .text {
         position: absolute;
-        top: 15%;
+        top: 5%;
         left: 16px;
         color: white;
         margin-left: 80px;
     }
 
-    .intro h2 {
+    .text h2 {
         font-size: 50px;
         margin-bottom: -30px;
-
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+       
     }
 
-    .intro p {
+    .text p {
         font-size: 20px;
         width: 50%;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     }
 
-    .intro h3 {
+    .text h3 {
         font-size: 40px;
         margin-bottom: -15px;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
     }
 
     .button {
@@ -133,17 +124,18 @@
         border-radius: 10px;
         text-decoration: none;
         color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
     .part1 {
-
+        
         align-content: center;
         margin-left: 15px;
-
+    
     }
 
     .part1 h2 {
-
+        
         text-align: center;
     }
 
@@ -153,7 +145,9 @@
         margin-top: 30px;
     }
 
-
+    .okay {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
     .okay img{
         width: 100%;
     }
@@ -161,11 +155,12 @@
     .lol {
         height:15px;
         background-color: #ED1B2F;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
     .part2{
         display: flex;
-        justify-content: center;
+        justify-content: space-around;
         gap: 20px;
         flex-wrap: wrap;
         width: 100%;
@@ -177,9 +172,7 @@
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
         transition: 0.3s;
         background-color: lightgrey;
-        text-decoration: none;
-        color: inherit;
-        display: block;
+        
     }
     .card img {
         width:250px;
@@ -199,124 +192,379 @@
     .button:hover {
         background-color: #b22d0a;
     }
+
+    .divider-red {
+            height: 8px;
+            background-color: #ED1B2F;
+        }
+
+     /* ========== FEATURE CARDS SECTION ========== */
+        .features-section {
+            padding: 20px 40px;
+            background: #f5f5f5;
+            scroll-margin-top: 100px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title h2 {
+            font-size: 40px;
+            color: #ED1B2F;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .features-grid {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 25px;
+        }
+
+        .feature-card {
+            box-sizing: border-box;
+            background: white;
+            width: 250px;
+            padding: 25px 20px;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
+        .container1 h3 {
+            font-size: 20px;
+            color: #ED1B2F;
+            margin-bottom: 10px;
+        }
+
+        .container2 p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* ========== ABOUT SECTION ========== */
+        .about-section {
+            padding: 50px 40px;
+            background: white;
+            text-align: center;
+        }
+
+        .about-section h2 {
+            font-size: 36px;
+            color: #ED1B2F;
+            margin-bottom: 25px;
+        }
+
+        .about-section p {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            color: #444;
+            font-size: 16px;
+        }
+
+        /* ========== STATS SECTION ========== */
+        .stats-section {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            padding: 50px 20px;
+            background: #ED1B2F;
+            color: white;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 42px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: #1a1a1a;
+            color: #999;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .footer img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #999;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            color: #ED1B2F;
+        }
+
+        .copyright {
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        /* ========== TOAST NOTIFICATION ========== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        @media (max-width: 768px) {
+            .topnav {
+                height: auto;
+                flex-wrap: wrap;
+                padding: 5px 15px;
+            }
+
+            .nav-right {
+                margin-left: auto;
+            }
+
+            .text {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                margin-left: 0;
+                width: 90%;
+            }
+            .text h2 {
+                font-size: 40px;
+                padding-bottom: 15px;
+            }
+            
+            .text h3 {
+                font-size: 22px;
+            }
+            .text p {
+                padding-top: 25px;
+                padding-bottom: 25px;
+                font-size: 14px;
+                width: 100%;
+                margin: 0 auto;
+                text-align: center;
+            }
+            .features-section {
+                padding: 40px 20px;
+            }
+            .stats-section {
+                gap: 30px;
+            }
+            .stat-number {
+                font-size: 28px;
+            }
+        }
+
+
+  
+
+
+
+
+
+   
+
 </style>
 <body>
     <div class="container">
 
         <div class="topnav">
-            <img src="images/logo.svg" />
-
+            <img src="images/logo.svg" alt="McGiLL Logo"/>
+            
             <div class="nav-left">
-                <h2>McGill</h2>
-                <p>McSlot</p>
+                <h2>McGiLL</h2>
+                <p>Bookings</p>
             </div>
 
-            <div class="nav-center">
-                <a href="#Home">Home</a>
-                <a href="#Services">Services</a>
-                <a href="#about">About</a>
-            </div>
-
-            <div class="nav-right" id="auth-nav">
-                <!-- filled in by JS -->
+            <div class="nav-right">
+                <a href="#home">Home</a>
+                <a href="#features">Services</a>
+                <a href="#about">About</a>>
             </div>
         </div>
 
 
-        <div class="landing">
+        <div class="landing" id="home">
 
             <div class="intro">
-                <img src="images/mcgill5.png" />
-
-                <div class="text"><h2>Welcome to McGill McSlot</h2>
-                    <h3>Easily Schedule Meetings</h3>
-                    <p>Schedule meetings with professors,
+                <img src="images/mcgill5.png" alt="McGiLL Campus"/>
+           
+                <div class="text"><h2>Welcome to McGiLL Bookings</h2>
+                    <h3>Easily Schedule Meetings</h3>                
+                    <p>Schedule meetings with professors, 
                     teaching assistants, and fellow students with our easy-to-use booking platform. </p>
 
-                    <div id="hero-buttons">
                         <a href="register.html" class="button">Register</a>
                         <a href="login.html" class="button">Login</a>
-                    </div>
-
+             
                 </div>
+            </div>   
+        </div>
 
+        <div class="divider-red"></div>
+
+        <div class="features-section" id="features">
+            <div class="section-title">
+                <h2>What We Offer</h2>
+                <p>Everything you need to manage your academic meetings</p>
+            </div>
+
+            <div class="features-grid" id = "fcards">
+                <!-- filled in by JS so links route correctly per auth state-->
             </div>
         </div>
 
-        <div class="lol"></div>
+        <div class="about-section" id="about">
+            <h2>About McGiLL Bookings</h2>
+            <p>McGiLL Bookings is the official scheduling platform for McGiLL University. Our mission is to simplify the process of booking academic meetings, making it easier for students to connect with professors, TAs, and fellow students. Whether you need office hours, group project meetings, or study partners, we've got you covered.</p>
+        </div>
 
-
-        <div class="bottom-part">
-
-            <div class="about-row">
-
-                <div class="part2" id="feature-cards">
-                    <!-- filled in by JS so links route correctly per auth state -->
-                </div>
-
+        <div class="stats-section">
+            <div class="stat-item">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Active Professors & TAs</div>
             </div>
-
-            <div class="part1">
-                <h2>About Us</h2>
-                <p>"At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat."</p>
+            <div class="stat-item">
+                <div class="stat-number">10,000+</div>
+                <div class="stat-label">Bookings Made</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Availability</div>
             </div>
         </div>
 
-
-        <div class="okay">
-            <img src="images/header.png" />
-
+        <div class="footer" id="contact">
+            <div class="footer-links">
+                <a href="#home">Home</a>
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="#">Contact Us</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+            <img src="images/header.png" alt="McGiLL" />
+            <div class="copyright">
+                &copy; 2026 McGiLL Bookings. All rights reserved. McGiLL University
+            </div>
         </div>
 
     </div>
 
+    
+
 <script src="shared.js"></script>
 <script>
-(async function initHome() {
-    const user = await API.getUser();
-    const authNav = document.getElementById('auth-nav');
-    const heroButtons = document.getElementById('hero-buttons');
-    const cards = document.getElementById('feature-cards');
+    (async function initHome() {
+        const user = await API.getUser();
+        const cards = document.getElementById('fcards');
 
-    // Student pages vs owner pages
-    const dashHref = user && user.isOwner ? 'owner-view.html' : 'view.html';
-    const bookHref = user && user.isOwner ? 'owner-book.html' : 'book.html';
 
-    if (user) {
-        const fn = user.firstName || '';
-        authNav.innerHTML = `
-            <a href="${dashHref}">Dashboard</a>
-            <a href="${bookHref}">${user.isOwner ? 'Create Slots' : 'Book'}</a>
-            <a href="teamup.html">Team Up</a>
-            <a href="#" onclick="API.logout();return false;">Logout</a>
-        `;
-        heroButtons.innerHTML = `
-            <a href="${dashHref}" class="button">My Dashboard</a>
-            <a href="${bookHref}" class="button">${user.isOwner ? 'Create a Slot' : 'Book a Slot'}</a>
-        `;
-        // Personalized greeting
-        document.querySelector('.intro h2').textContent = `Welcome back${fn ? ', ' + fn : ''}!`;
-    } else {
-        authNav.innerHTML = `
-            <a href="login.html">Login</a>
-            <a href="register.html">Register</a>
-        `;
-    }
+        // Student pages vs owner pages
+        const dashHref = user && user.isOwner ? 'owner-view.html' : 'view.html';
+        const bookHref = user && user.isOwner ? 'owner-book.html' : 'book.html';
+
+        if (user) {
+            const fn = user.firstName || '';
+            heroButtons.innerHTML = `
+                <a href="${dashHref}" class="button">My Dashboard</a>
+                <a href="${bookHref}" class="button">${user.isOwner ? 'Create a Slot' : 'Book a Slot'}</a>
+            `;
+            // Personalized greeting
+            document.querySelector('.intro h2').textContent = `Welcome back${fn ? ', ' + fn : ''}!`;
+        } else {
+
+        }
 
     // Feature cards — route to pages that depend on role
-    const cardDefs = [
-        { img: 'images/mcgill.png',  title: 'Request a meeting',         href: user && user.isOwner ? 'requests.html' : 'book.html' },
-        { img: 'images/card1.png',   title: 'Schedule a group meeting',  href: user && user.isOwner ? 'owner-book.html' : 'view.html' },
-        { img: 'images/card2.png',   title: 'Reserve office hours slots', href: bookHref },
-        { img: 'images/card3.png',   title: 'Find teammates for a project', href: 'teamup.html' },
-    ];
-    cards.innerHTML = cardDefs.map(c => `
-        <a class="card" href="${c.href}">
-            <img src="${c.img}" />
-            <div class="container1"><h4><b>${c.title}</b></h4></div>
-        </a>
-    `).join('');
-})();
+            const cardDefs = [
+                { icon: '📅', title: 'Request a Meeting', para: 'Book one-on-one meetings with professors and TAs during their office hours' ,href: user && user.isOwner ? 'requests.html' : 'book.html' },
+                { icon: '👥', title: 'Group Meetings', para: 'Schedule group meetings using our smart heatmap voting system', href: user && user.isOwner ? 'owner-book.html' : 'view.html' },
+                { icon: '🏢', title: 'Office Hours', para: 'Reserve office hours slots with your favorite professors', href: user && user.isOwner ? 'owner-book.html' : 'view.html' },
+                { icon: '🤝', title: 'TeamFinder', para:'Find teammates for projects and study groups', href: 'teamup.html' },
+            ];
+            if (cards) {
+                cards.innerHTML = cardDefs.map(c => `
+                    <a class="feature-card" href="${c.href}">
+                        <div class="feature-icon">${c.icon}</div>
+                        <div class="container1"><h3>${c.title}</h3></div>
+                        <div> class="container2"><p>${c.para}</p></div>
+                    </a>
+                `).join('');
+            }
+        })();
 </script>
+
+
+
+
+    
 </body>
 </html>
