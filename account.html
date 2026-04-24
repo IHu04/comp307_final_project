@@ -791,8 +791,7 @@
         document.getElementById('infoRole').textContent = currentUser.isOwner ? 'Professor/TA (Owner)' : 'Student';
         document.getElementById('infoSince').textContent = currentUser.createdAt || 'January 2026';
         
-        const roleBadge = document.getElementById('roleBadge');
-        roleBadge.textContent = currentUser.isOwner ? '👨‍🏫 Professor View' : '🎓 Student View';
+        
         
         // Load stats
         await loadStats();
@@ -914,9 +913,6 @@
 
     // Initialize
     async function init() {
-        document.getElementById('welcome-h').textContent =
-        `Welcome, ${currentUser.firstName}!`;
-
         await loadUserData();
     }
     
