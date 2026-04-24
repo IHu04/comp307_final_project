@@ -747,26 +747,18 @@
 
         // Update nav and sidebar links based on role
         if (currentUser.isOwner) {
-            document.querySelector('.nav-right').innerHTML = `
-                <span class="role-badge">👨‍🏫 Professor View</span>
-                <a href="owner-view.html">Dashboard</a>
-                <a href="owner-book.html">Create Slots</a>
-                <a href="requests.html">Requests</a>
-                <a href="account.html">My Account</a>
-                <a href="#" onclick="API.logout()">Logout</a>
-            `;
-            document.getElementById('sidebar').innerHTML = `
-                <div class="menu-item" onclick="location.href='owner-view.html'">
+          document.querySelector('.dashboard').innerHTML = `
+                <div class="d2" onclick="location.href='owner-view.html'">
                     <img src="images/Dash.png" alt="Dashboard"><span>Dashboard</span>
                 </div>
-                <div class="menu-item" onclick="location.href='owner-book.html'">
+                <div class="d3" onclick="location.href='owner-book.html'">
                     <img src="images/Book.png" alt="Create"><span>Create Slots</span>
                 </div>
-                <div class="menu-item" onclick="location.href='requests.html'">
+                <div class="d4" onclick="location.href='requests.html'">
                     <img src="images/finder.png" alt="Requests"><span>Booking Requests</span>
                 </div>
-                <div class="menu-item active" onclick="location.href='account.html'">
-                    <img src="images/account.png" alt="Account"><span>My Account</span>
+                <div class="d5" onclick="location.href='teamup.html'">
+                    <img src="images/account.png" alt="Account"><span>TeamFinder</span>
                 </div>
                 <div class="pic">
                     <img src="images/logo-ssmu.svg" alt="SSMU">
