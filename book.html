@@ -510,7 +510,6 @@
                         <div class="actions">
                             <button onclick="requestMeeting(${o.id}, '${encodeURIComponent(name)}')">Request Meeting</button>
                             <button onclick="viewSlots(${o.id}, this)">View Slots</button>
-                            <button type="button" onclick="openStudentCalendar(${o.id}, ${JSON.stringify(o.firstName || '')}, ${JSON.stringify(o.lastName || '')}, ${JSON.stringify(o.email || '')})">Calendar view</button>
                             <button onclick="emailOwner('${o.email}')">Email</button>
                         </div>
                     </div>
