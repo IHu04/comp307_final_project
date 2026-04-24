@@ -827,9 +827,8 @@
                         const data = await API.post('/slots', {
                             slots: [{ date, startTime, endTime }],
                         });
-                        const slotId = data.slots?.[0]?.id;
-                        if (slotId) await API.patch(`/slots/${slotId}/activate`);
-                        alert('Office-hours slot created and active!');
+    
+                        alert('Office-hours slot created!');
                     }
                     window.location.href = 'owner-view.html';
                     return;
