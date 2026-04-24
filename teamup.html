@@ -3,48 +3,191 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 <title>TeamUp McGill</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Times New Roman', Times, serif;
     background: #d9d9d9;
 }
 
-/* NAVBAR */
-.topnav {
-    height: 80px;
+.view {
     display: flex;
-    align-items: center;
-    background: #ED1B2F;
-    color: white;
-    padding: 0 20px;
 }
 
-.topnav h2 {
-    margin: 0;
-    font-size: 28px;
-}
+/* NAVBAR */
 
-.topnav-right {
-    margin-left: auto;
-}
+.dashboard {
+    margin-top: 20px;
+            width: 270px;
+            height: 100vh;
+            border-top-right-radius: 35px;
+            border-bottom-right-radius: 35px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
 
-.topnav-right a {
-    color: white;
-    text-decoration: none;
-    margin-left: 20px;
-}
 
-.topnav-right a:hover {
-    text-decoration: underline;
-}
+        .slide button {
+            position: absolute;
+            left: 270px;
+            top: 5px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+
+
+
+        .slide {
+            width: 270px;
+      
+            position: fixed;
+            left: 0;
+            transition: transform 0.3s ease-in-out;
+            
+        }
+
+        .slide.hidden {
+            transform: translateX(-270px);
+        }
+
+
+        .dashboard div {
+            display: flex;
+            align-items: center;  
+            margin-left: 20px;
+        }
+
+
+
+        .d1 {
+            padding-top: 30px;
+        }
+
+        .dashboard img {
+            width:50px;
+            height:auto;
+            margin-left: 15px;
+        }
+
+        .dashboard a {
+            text-decoration: none;
+            color: black;
+            font-size: 20px;
+
+        }
+
+        .d4 {
+            background-color: lightgray;
+            margin-left: 20px;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            
+        }
+
+
+        .dashboard div:not(.d4, .okay, .pic):hover {
+            background-color: #f6f6f6;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+        }
+
+        .okay {
+            border-top-right-radius: 20px;
+            gap: 10px;
+            padding-top: 50px;
+            padding-bottom: 10px;
+            padding-left: 20px;
+        }
+
+        .pic {
+            margin-top: auto;
+            padding-bottom: 100px;
+        }
+
+        .pic img {
+            width: 60px;
+            height: auto;
+            display: block;
+        
+            padding-right: 18px;
+        }
+
+        .topnav {
+            display: flex;
+            z-index: 9999;
+            top:0;
+            position: sticky;
+            height: 75px;
+            padding-right: 20px;
+            align-items: center;
+            background-color: #ED1B2F;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        
+        }
+
+        .right {
+            display: flex;
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+
+        .right a{
+            text-decoration: none;
+            color: white;
+            padding: 24px 12px;
+            font-size: 18px;
+            
+        }
+
+        .right a:hover {
+            text-decoration: underline;
+        }
+
+        .left {
+            display: flex;
+            padding-left: 20px;
+           
+        }
+
+        .left h3{
+            
+            color: white;
+            font-size: 30px;
+        }
+
+        .ok {
+            display: flex;
+        }
+
+        .main {
+            margin-left: 310px;
+            padding: 30px;
+            width: 100vw;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main.shifted {
+            margin-left: 0;
+        }
+
+        .main p {
+            margin-top: -10px;
+            color: #8f8f8f;
+        }
+
 
 /* LAYOUT */
-.container {
-    display: flex;
-}
+
 
 /* FORM SIDEBAR */
 .form {
@@ -54,6 +197,7 @@ body {
     height: calc(100vh - 80px);
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     overflow-y: auto;
+    border-radius: 20px;
 }
 
 .form h3 {
@@ -62,7 +206,7 @@ body {
 
 /* INPUTS */
 input, textarea, select {
-    width: 100%;
+    width: 95%;
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 10px;
@@ -73,7 +217,7 @@ input, textarea, select {
 /* BUTTON SYSTEM */
 button {
     padding: 10px;
-    background: #ED1B2F;
+    background: #e2291e;
     color: white;
     border: none;
     cursor: pointer;
@@ -82,9 +226,7 @@ button {
     width: 100%;
 }
 
-button:hover {
-    background: #b22d0a;
-}
+
 
 /* FEED */
 .feed {
@@ -128,7 +270,7 @@ button:hover {
 
 /* FULL LABEL */
 .full {
-    color: #ED1B2F;
+    color: #e2291e;
     font-weight: bold;
 }
 </style>
@@ -138,62 +280,127 @@ button:hover {
 
 <!-- NAVBAR -->
 <div class="topnav">
-    <h2>TeamUp McGill</h2>
 
-    <div class="topnav-right">
-        <a href="book.html">Book</a>
-        <a href="view.html">My Appointmentss</a>
-        <a href="teamup.html">Team Up</a>
-        <a href="#" onclick="API.logout()">Logout</a>
+    <div class="left">
+        <h3>McGill McSlot</h3>
     </div>
+
+     <div class="right">
+        <a href="homepage.html">Home</a>
+        <a href="account.html">My Account</a>
+    </div>
+
 </div>
 
-<div class="container">
+<div class="ok">
+            <div class="slide" id="slide1">
 
-<!-- FORM -->
-<div class="form">
-    <h3>Create Team Request</h3>
+                    <div class="dashboard">
 
-    <input id="course" placeholder="Course (e.g. COMP 202)">
-    <input id="teamName" placeholder="Team name">
+                        <div class="okay">
+                            <h2 id ="welcome-h">Welcome!</h2>
+                        </div>
+        
+                        <div class="d2">
+                            <img src="images/Dash.png" />
+                            <a href="view.html">Dashboard</a>
+                        </div>
 
-    <textarea id="desc" placeholder="Describe your team..."></textarea>
+                        <div class="d3">
+                            <img src="images/Book.png" />
+                            <a href="book.html">Book Appointment</a>
+                        </div>
 
-    <input id="looking" placeholder="Looking for (e.g. frontend dev)">
-    <input id="max" type="number" placeholder="Max team size">
+                        <div class="d4">
+                            <img src="images/finder.png" />
+                            <a href="teamfinder.html">TeamFinder</a>
+                        </div>
 
-    <select id="intent">
-        <option value="project">🤝 Project Teammates</option>
-        <option value="study">📚 Study Partner</option>
-        <option value="friend">😊 Friend / Social</option>
-    </select>
+                        <div class="d5">
+                            <img src="images/account.png" />
+                            <a href="#MyAccount">My Account</a>
+                        </div>
 
-    <button onclick="createRequest()">Post</button>
+                        <div class="d6">
+                            <img src="images/logout.png" />
+                            <a href="#Logout">Logout</a>
+                        </div>
 
-    <hr>
+                        <div class="pic">
+                            <img src="images/logo-ssmu.svg" />
+                        </div>
+                    
+                    </div>
 
-    <h4>Filters</h4>
+                    <button onclick="toggleDash()"><i class="fa fa-bars"></i></button>
 
-    <select id="filterCourse" onchange="render()">
-        <option value="ALL">All Courses</option>
-        <option value="COMP">COMP</option>
-        <option value="MATH">MATH</option>
-        <option value="ECON">ECON</option>
-    </select>
+                    
+                </div>
 
-    <input id="search" placeholder="Search..." oninput="render()">
-</div>
+                <div class="main">
 
-<!-- FEED -->
-<div class="feed">
-    <h3>Active Team Requests</h3>
-    <div id="list"></div>
-</div>
+                    <div class="name"> 
+                        <h2>TeamFinder</h2>
+                        <p>Find project teammates, study partners, and friends here by joining groups.</p>
+
+                    </div>
+
+                    <div class="view">
+
+                        <div class="form">
+                            <h3>Create Team Request</h3>
+
+                            <input id="course" placeholder="Course (e.g. COMP 202)">
+                            <input id="teamName" placeholder="Team name">
+
+                            <textarea id="desc" placeholder="Describe your team..."></textarea>
+
+                            <input id="looking" placeholder="Looking for (e.g. frontend dev)">
+                            <input id="max" type="number" placeholder="Max team size">
+
+                            <select id="intent">
+                                <option value="project">🤝 Project Teammates</option>
+                                <option value="study">📚 Study Partner</option>
+                                <option value="friend">😊 Friend / Social</option>
+                            </select>
+
+                            <button onclick="createRequest()">Post</button>
+
+                            <hr>
+
+                            <h4>Filters</h4>
+
+                            <select id="filterCourse" onchange="render()">
+                                <option value="ALL">All Courses</option>
+                                <option value="COMP">COMP</option>
+                                <option value="MATH">MATH</option>
+                                <option value="ECON">ECON</option>
+                            </select>
+
+                            <input id="search" placeholder="Search..." oninput="render()">
+                        </div>
+
+                        <!-- FEED -->
+                        <div class="feed">
+                            <h3>Active Team Requests</h3>
+                            <div id="list"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+        </div>
 
 </div>
 
 <script src="shared.js"></script>
 <script>
+
+        function toggleDash() {
+            document.getElementById("slide1").classList.toggle("hidden");
+            document.querySelector(".main").classList.toggle("shifted");
+        }
 
 let currentUser = null;
 
@@ -201,6 +408,8 @@ async function init() {
   currentUser = await API.requireAuth();
   if (!currentUser) return;
   render();
+    document.getElementById('welcome-h').textContent =
+    `Welcome, ${currentUser.firstName}!`;
 }
 
 async function createRequest() {
