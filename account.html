@@ -748,9 +748,10 @@
         // Update nav and sidebar links based on role
         if (currentUser.isOwner) {
           document.querySelector('.dashboard').innerHTML = `
-                <div class="okay">
+<div class="okay">
                     <h2 id ="welcome-h">Welcome, ${currentUser.firstName}!</h2>
                 </div>
+                <br>
 
                 <div class="d2">
                     <img src = "images/Dash.png" />
@@ -759,19 +760,19 @@
 
                 <div class="d3">
                     <img src="images/Book.png" />
-                    <a href="owner-book.html"></a>
+                    <a href="owner-book.html">Create Slots</a>
                 </div>
 
                 <div class="d4">
                     <img src="images/finder.png" />
-                    <a href="requests.html"></a>
+                    <a href="requests.html">Booking Requests</a>
                 </div>
 
                 <div class="d5">
                     <img src="images/account.png" />
-                    <a href="teamup.html"></a>
+                    <a href="teamup.html">TeamFinder</a>
                 </div>
-                
+
                 <div class="pic">
                     <img src="images/logo-ssmu.svg" alt="SSMU">
                 </div>
