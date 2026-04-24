@@ -914,6 +914,8 @@
     // Initialize
     async function init() {
         await loadUserData();
+        document.getElementById('welcome-h').textContent =
+        `Welcome, ${currentUser.firstName}!`;
     }
     
     init();
