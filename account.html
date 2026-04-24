@@ -748,6 +748,10 @@
         // Update nav and sidebar links based on role
         if (currentUser.isOwner) {
           document.querySelector('.dashboard').innerHTML = `
+                <div class="okay">
+                    <h2 id ="welcome-h">Welcome, ${currentUser.firstName}!</h2>
+                </div>
+
                 <div class="d2" onclick="location.href='owner-view.html'">
                     <img src="images/Dash.png" alt="Dashboard"><span>Dashboard</span>
                 </div>
