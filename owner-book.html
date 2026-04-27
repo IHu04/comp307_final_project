@@ -13,6 +13,7 @@
         margin: 0;
         background-color: lightgray;
         animation: pagein 0.15s ease;
+        overflow-x: hidden;
     }
 
     @keyframes pagein {
@@ -105,7 +106,6 @@
         width: 60px;
         height: auto;
         display: block;
-    
         padding-right: 18px;
     }
 
@@ -155,7 +155,7 @@
     .main {
         margin-left: 310px;
         padding: 30px;
-        width: 100vw;
+        width: calc(100vw -310px);
         transition: margin-left 0.3s ease;
         display: flex;
     }
@@ -249,6 +249,7 @@
     /* When the side bar is gone */
     .main.shifted {
         margin-left: 0;
+        width: 100vw;
     }
 
     /* The description of the create slot feature*/
