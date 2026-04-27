@@ -10,7 +10,7 @@ function formatDateToICS(date) {
     const mi = String(date.getMinutes()).padStart(2, '0');
     const s = String(date.getSeconds()).padStart(2, '0');
 
-    // no trailing Z — we emit local (floating) time, which iCal clients
+    // no trailing Z, we emit local (floating) time, which iCal clients
     // will interpret in the user's local zone. the backend's ICS export
     // (dashboardController.js) handles timezone-aware exports via ical-generator;
     // this client-side helper is used for preview / download-without-login flows.

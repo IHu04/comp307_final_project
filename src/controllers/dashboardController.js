@@ -28,8 +28,8 @@ function mapStudentRow(row) {
     email: row.owner_email,
   };
   const subject = row.slot_type === 'meeting_request'
-    ? 'McGill Bookings — meeting request'
-    : 'McGill Bookings — office hours';
+    ? 'McGill Bookings - meeting request'
+    : 'McGill Bookings - office hours';
   const mailtoUri = buildMailtoUri(
     row.owner_email,
     subject,
@@ -58,14 +58,14 @@ function mapOwnerSlotRow(row) {
   let mailtoUri = null;
 
   if (isGroupMeeting) {
-    // group meeting slots have no single booker — show the meeting title instead
+    // group meeting slots have no single booker - show the meeting title instead
     otherParty = { name: row.gm_title || 'Group Meeting', email: null };
   } else if (booked && row.booker_email) {
     const bookerName = fullName(row.booker_fn, row.booker_ln);
     otherParty = { name: bookerName, email: row.booker_email };
     mailtoUri = buildMailtoUri(
       row.booker_email,
-      'McGill Bookings — your office hours slot',
+      'McGill Bookings - your office hours slot',
       `Hello,\n\nRegarding the slot on ${formatDateOnly(row.date)}.\n`
     );
   }

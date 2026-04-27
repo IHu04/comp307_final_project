@@ -276,7 +276,7 @@ export const joinTeamRequest = asyncHandler(async (req, res) => {
 
     const mailto = buildMailtoUri(
       tr.creator_email,
-      `TeamFinder: new member — ${tr.team_name}`,
+      `TeamFinder: new member - ${tr.team_name}`,
       `${joinerLabel} joined your team "${tr.team_name}" for ${tr.course_code}.`
     );
 
@@ -348,7 +348,7 @@ export const leaveTeamRequest = asyncHandler(async (req, res) => {
 
     const mailto = buildMailtoUri(
       tr.creator_email,
-      `TeamFinder: member left — ${tr.team_name}`,
+      `TeamFinder: member left - ${tr.team_name}`,
       `${selfLabel} left your team "${tr.team_name}" for ${tr.course_code}.`
     );
 

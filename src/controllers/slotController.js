@@ -393,16 +393,16 @@ export const deleteSlot = asyncHandler(async (req, res) => {
   let cancelMailto = null;
   let notifyParticipantsMailto = null;
 
-  // regular booked slot — notify the individual booker
+  // regular booked slot - notify the individual booker
   if (row.status === 'booked' && row.booker_email && row.slot_type !== 'group_meeting') {
     cancelMailto = buildMailtoUri(
       row.booker_email,
-      'McGill Bookings — appointment cancelled',
+      'McGill Bookings - appointment cancelled',
       `Your booking on ${dateStr} at ${timeStr} has been cancelled by the instructor.`
     );
   }
 
-  // group meeting slot — notify all participants and cancel the meeting record
+  // group meeting slot - notify all participants and cancel the meeting record
   if (row.slot_type === 'group_meeting' && row.group_meeting_id) {
     const [gm] = await pool.query(
       'SELECT title FROM group_meetings WHERE id = ? LIMIT 1',
@@ -418,7 +418,7 @@ export const deleteSlot = asyncHandler(async (req, res) => {
     if (emails.length) {
       notifyParticipantsMailto = buildMailtoUri(
         emails.join(','),
-        `McGill Bookings — group meeting cancelled: ${gm[0]?.title || 'Meeting'}`,
+        `McGill Bookings - group meeting cancelled: ${gm[0]?.title || 'Meeting'}`,
         `The group meeting scheduled for ${dateStr} at ${timeStr} has been cancelled by the organizer.`
       );
     }
@@ -471,7 +471,7 @@ export const getSlotMailto = asyncHandler(async (req, res) => {
   const dateStr = formatDateOnly(row.date);
   const mailto = buildMailtoUri(
     row.booker_email,
-    'McGill Bookings — your appointment',
+    'McGill Bookings - your appointment',
     `Regarding your booked slot on ${dateStr} at ${String(row.start_time).slice(0, 5)}.`
   );
 

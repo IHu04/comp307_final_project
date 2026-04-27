@@ -10,7 +10,7 @@ import {
 
 const router = Router();
 
-// returns every owner (with or without active slots) — used by the student booking page
+// returns every owner (with or without active slots) - used by the student booking page
 router.get('/all', isAuthenticated, listAllOwners);
 
 // returns all owners who currently have at least one bookable slot

@@ -354,7 +354,7 @@ body {
 <div class="page">
 <div class="booking-card">
 
-    <!-- OWNER HEADER — filled by JS from URL params -->
+    <!-- OWNER HEADER: filled by JS from URL params -->
     <div class="owner-header">
         <div class="owner-avatar" id="owner-avatar">?</div>
         <div class="owner-details">
@@ -407,7 +407,7 @@ body {
                     <ellipse cx="8" cy="8" rx="3" ry="7" stroke="#bbb" stroke-width="1.2"/>
                     <line x1="1" y1="8" x2="15" y2="8" stroke="#bbb" stroke-width="1.2"/>
                 </svg>
-                Eastern time — Canada
+                Eastern time - Canada
             </div>
         </div>
 
@@ -455,7 +455,7 @@ async function init() {
     ownerInfo.email     = params.get('email')     || '';
 
     if (!ownerInfo.id) {
-        // no owner specified — send back to browse page
+        // no owner specified - send back to browse page
         window.location.href = 'book.html';
         return;
     }

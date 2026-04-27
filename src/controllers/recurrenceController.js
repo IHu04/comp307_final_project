@@ -247,7 +247,7 @@ export const deleteRecurrencePattern = asyncHandler(async (req, res) => {
         slotId: s.id,
         mailto: buildMailtoUri(
           s.booker_email,
-          'McGill Bookings — appointment cancelled',
+          'McGill Bookings - appointment cancelled',
           `Your booking on ${dateStr} at ${timeStr} has been cancelled because the recurring series was deleted.`
         ),
       };

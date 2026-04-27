@@ -477,7 +477,7 @@
                     `;
                     return;
                 } catch (e) {
-                    // Invalid token — fall through and show all owners
+                    // Invalid token, fall through and show all owners
                 }
             }
 
@@ -509,7 +509,7 @@
                     : 'No active slots';
                 div.innerHTML = `
                     <div class="content">
-                        <h4>${name} <span style="font-weight:normal;color:#888;font-size:13px">— ${slotLabel}</span></h4>
+                        <h4>${name} <span style="font-weight:normal;color:#888;font-size:13px">- ${slotLabel}</span></h4>
                         <div class="actions">
                             <button onclick="requestMeeting(${o.id}, '${encodeURIComponent(name)}')">Request Meeting</button>
                             <button onclick="viewSlots(${o.id}, this)">View Slots</button>

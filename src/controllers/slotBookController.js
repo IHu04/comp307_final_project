@@ -109,7 +109,7 @@ export const bookSlot = asyncHandler(async (req, res) => {
     const bookerName = [row.booker_first_name, row.booker_last_name].filter(Boolean).join(' ') || 'A student';
     const notifyOwnerMailto = buildMailtoUri(
       row.owner_email,
-      'McGill Bookings — new appointment booked',
+      'McGill Bookings - new appointment booked',
       `${bookerName} booked your slot on ${dateStr} at ${timeStr}.\n\nView your dashboard to see the full details.`
     );
 
@@ -178,7 +178,7 @@ export const cancelMySlotBooking = asyncHandler(async (req, res) => {
   const timeStr = String(row.start_time).slice(0, 5);
   const notifyOwnerMailto = buildMailtoUri(
     row.owner_email,
-    'McGill Bookings — cancelled appointment',
+    'McGill Bookings - cancelled appointment',
     `I cancelled my booking for ${dateStr} at ${timeStr}.`
   );
 

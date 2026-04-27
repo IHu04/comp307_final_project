@@ -87,7 +87,7 @@ export const createMeetingRequest = asyncHandler(async (req, res) => {
   const requesterName = fullName(row.requester_fn, row.requester_ln);
   const notifyOwnerMailto = buildMailtoUri(
     owner.email,
-    'McGill Bookings — new meeting request',
+    'McGill Bookings - new meeting request',
     `${requesterName} (${row.requester_email}) sent you a meeting request.\n\n${message ? `Message:\n${message}\n` : ''}\nOpen your dashboard to accept or decline.`
   );
 
@@ -264,7 +264,7 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
 
       const notifyRequesterMailto = buildMailtoUri(
         mr.requester_email,
-        'McGill Bookings — meeting request update',
+        'McGill Bookings - meeting request update',
         `Your meeting request was declined.\n\nYou can send another request from the app if needed.`
       );
 
@@ -319,7 +319,7 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
     const dateStr = formatDateOnly(date);
     const notifyRequesterMailto = buildMailtoUri(
       mr.requester_email,
-      'McGill Bookings — meeting request accepted',
+      'McGill Bookings - meeting request accepted',
       `Your meeting request was accepted.\n\nScheduled: ${dateStr} from ${String(st).slice(0, 5)} to ${String(et).slice(0, 5)}.\nLocation: ${location}`
     );
 

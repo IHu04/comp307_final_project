@@ -171,7 +171,7 @@ export const createGroupMeeting = asyncHandler(async (req, res) => {
     const toList = participantEmails.join(',');
     const notifyParticipantsMailto = buildMailtoUri(
       toList,
-      `McGill Bookings — group meeting: ${title || 'Vote on a time'}`,
+      `McGill Bookings - group meeting: ${title || 'Vote on a time'}`,
       `You are invited to vote on times for a group meeting.\nOpen the app and go to group meeting #${meetingId}.`
     );
 
@@ -459,13 +459,13 @@ export const finalizeGroupMeeting = asyncHandler(async (req, res) => {
     const emails = participants.map((p) => p.email).filter(Boolean);
     const notifyParticipantsMailto = buildMailtoUri(
       emails.join(','),
-      `McGill Bookings — group meeting finalized: ${gm.title || 'Meeting'}`,
+      `McGill Bookings - group meeting finalized: ${gm.title || 'Meeting'}`,
       `The organizer picked ${timeDesc}.\nSee your dashboard for details.`
     );
 
     const notifyOwnerMailto = buildMailtoUri(
       ownerEmail,
-      `McGill Bookings — group meeting confirmed: ${gm.title || 'Meeting'}`,
+      `McGill Bookings - group meeting confirmed: ${gm.title || 'Meeting'}`,
       `Hi ${ownerName},\n\nYour group meeting "${gm.title || 'Meeting'}" has been finalized.\n\nTime: ${timeDesc}\nParticipants: ${emails.join(', ') || 'none'}\n\nThis is your confirmation.`
     );
 
@@ -560,7 +560,7 @@ export const cancelGroupMeeting = asyncHandler(async (req, res) => {
       : `The group meeting "${title}" has been cancelled by the organizer.`;
     notifyParticipantsMailto = buildMailtoUri(
       emails.join(','),
-      `McGill Bookings — group meeting cancelled: ${title}`,
+      `McGill Bookings - group meeting cancelled: ${title}`,
       body
     );
   }
