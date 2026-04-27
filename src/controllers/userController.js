@@ -8,6 +8,7 @@ import { fetchUserById } from './authController.js';
 
 const BCRYPT_ROUNDS = 12;
 
+// returns the logged in user's profile
 export const getMyProfile = asyncHandler(async (req, res) => {
   const user = await fetchUserById(req.session.userId);
   if (!user) {
@@ -16,6 +17,7 @@ export const getMyProfile = asyncHandler(async (req, res) => {
   sendOk(res, { user: toPublicUser(user) });
 });
 
+// updates first and last name for the logged in user
 export const updateMyProfile = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const firstName = String(req.body.firstName || '').trim().slice(0, 100);
@@ -30,6 +32,7 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
   sendOk(res, { user: toPublicUser(user) }, 200, 'Profile updated');
 });
 
+// verifies the old password then saves a new hash
 export const changeMyPassword = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const oldPassword = req.body.oldPassword;

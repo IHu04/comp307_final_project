@@ -1,4 +1,4 @@
--- User asks an owner for a meeting; owner accepts (new booking_slot + created_slot_id) or declines.
+-- User asks an owner for a meeting, owner accepts (new booking_slot + created_slot_id) or declines
 
 CREATE TABLE IF NOT EXISTS meeting_requests (
   id INT NOT NULL AUTO_INCREMENT,

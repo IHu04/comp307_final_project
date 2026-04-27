@@ -5,7 +5,7 @@
 import { DateTime } from 'luxon';
 
 // returns the first calendar date on or after startDate that falls on the given weekday (0=mon..6=sun)
-export function firstOccurrenceOnOrAfter(startDateStr, dow0) {
+function firstOccurrenceOnOrAfter(startDateStr, dow0) {
   const dt = DateTime.fromISO(String(startDateStr).slice(0, 10), {
     zone: 'America/Montreal',
   }).startOf('day');

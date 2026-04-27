@@ -1,4 +1,4 @@
--- Calendar voting: owner proposes options, participants vote, owner finalizes (optionally recurring).
+-- Calendar voting, owner proposes options, participants vote, owner finalizes (optionally recurring)
 
 CREATE TABLE IF NOT EXISTS group_meetings (
   id INT NOT NULL AUTO_INCREMENT,
@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS group_meeting_options (
   date DATE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
-  vote_count INT NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   KEY idx_group_meeting_options_meeting (group_meeting_id),
   CONSTRAINT fk_group_meeting_options_meeting

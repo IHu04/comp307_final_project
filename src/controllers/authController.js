@@ -13,18 +13,21 @@ import env from '../config/env.js';
 
 const BCRYPT_ROUNDS = 12;
 
+// wraps session.regenerate in a promise so it can be awaited
 function sessionRegenerate(req) {
   return new Promise((resolve, reject) => {
     req.session.regenerate((err) => (err ? reject(err) : resolve()));
   });
 }
 
+// wraps session.save in a promise so it can be awaited
 function sessionSave(req) {
   return new Promise((resolve, reject) => {
     req.session.save((err) => (err ? reject(err) : resolve()));
   });
 }
 
+// fetches a full user row by id
 export async function fetchUserById(id) {
   const [rows] = await pool.query(
     `SELECT id, email, first_name, last_name, is_owner, invite_token, created_at, updated_at
@@ -34,6 +37,7 @@ export async function fetchUserById(id) {
   return rows[0] || null;
 }
 
+// creates a new user, hashes their password, and starts a session
 export const register = asyncHandler(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = req.body.password;
@@ -41,6 +45,7 @@ export const register = asyncHandler(async (req, res) => {
   const lastName = String(req.body.lastName || '').trim();
 
   const isOwner = isOwnerEmail(email);
+  // owners get an invite token so they can share a direct booking link
   const inviteToken = isOwner ? randomUUID() : null;
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
@@ -70,6 +75,7 @@ export const register = asyncHandler(async (req, res) => {
   sendCreated(res, { user: toPublicUser(user) }, 'Registered');
 });
 
+// verifies credentials and starts a session
 export const login = asyncHandler(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = req.body.password;
@@ -86,16 +92,13 @@ export const login = asyncHandler(async (req, res) => {
     [email]
   );
   const row = rows[0];
+  // same message for missing user and wrong password to avoid enumeration
   const bad = { success: false, message: 'Invalid email or password' };
 
-  if (!row) {
-    return res.status(401).json(bad);
-  }
+  if (!row) return res.status(401).json(bad);
 
   const match = await bcrypt.compare(password, row.password_hash);
-  if (!match) {
-    return res.status(401).json(bad);
-  }
+  if (!match) return res.status(401).json(bad);
 
   await sessionRegenerate(req);
   req.session.userId = row.id;
@@ -105,11 +108,10 @@ export const login = asyncHandler(async (req, res) => {
   sendOk(res, { user: toPublicUser(user) }, 200, 'Logged in');
 });
 
+// destroys the session and clears the cookie
 export function logout(req, res, next) {
   req.session.destroy((err) => {
-    if (err) {
-      return next(err);
-    }
+    if (err) return next(err);
     res.clearCookie(SESSION_COOKIE_NAME, {
       path: '/',
       httpOnly: true,
@@ -120,6 +122,7 @@ export function logout(req, res, next) {
   });
 }
 
+// verifies the current password then stores a new hash
 export const changePassword = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const currentPassword = req.body.currentPassword;
@@ -159,6 +162,7 @@ export const changePassword = asyncHandler(async (req, res) => {
   sendOk(res, {}, 200, 'Password updated');
 });
 
+// returns the currently logged in user
 export const me = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   if (!userId) {

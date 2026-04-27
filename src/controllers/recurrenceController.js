@@ -1,6 +1,6 @@
 // weekly recurrence patterns (type 3 booking)
 // create inserts draft booking_slots for each generated week so the owner can bulk activate them
-// delete removes draft and active slots; booked slots are freed back to active with cancel mailto links
+// delete removes draft and active slots, booked slots are freed back to active with cancel mailto links
 import { DateTime } from 'luxon';
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -16,6 +16,7 @@ import { weeklyOccurrenceDates } from '../utils/recurrenceDates.js';
 import { ownerHasOverlappingSlot } from '../utils/slotOverlap.js';
 import { buildMailtoUri } from '../utils/mailto.js';
 
+// shapes a recurrence pattern row for the api response
 function mapPatternRow(r, slotCount = null) {
   const out = {
     id: r.id,
@@ -33,6 +34,7 @@ function mapPatternRow(r, slotCount = null) {
   return out;
 }
 
+// validates patterns then generates draft booking slots for each weekly occurrence
 export const createRecurrencePatterns = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const patternsIn = req.body.patterns;
@@ -162,6 +164,7 @@ export const createRecurrencePatterns = asyncHandler(async (req, res) => {
   }
 });
 
+// returns all recurrence patterns for the logged in owner with their slot counts
 export const listMyRecurrencePatterns = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
 
@@ -184,6 +187,7 @@ export const listMyRecurrencePatterns = asyncHandler(async (req, res) => {
   sendOk(res, { patterns });
 });
 
+// removes the pattern and its draft and active slots, freeing any booked ones back to active
 export const deleteRecurrencePattern = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const patternId = req.params.id;

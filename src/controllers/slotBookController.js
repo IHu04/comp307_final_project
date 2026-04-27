@@ -6,6 +6,7 @@ import { rangesOverlap, normalizeTime } from '../utils/slotTime.js';
 import { sameCalendarDay, formatDateOnly } from '../utils/dateSlot.js';
 import { buildMailtoUri } from '../utils/mailto.js';
 
+// student books an active slot, checks for time conflicts, and marks it as booked
 export const bookSlot = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const slotId = req.params.id;
@@ -135,6 +136,7 @@ export const bookSlot = asyncHandler(async (req, res) => {
   }
 });
 
+// student cancels their booking and returns the slot to active
 export const cancelMySlotBooking = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const slotId = req.params.slotId;

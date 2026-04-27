@@ -1,7 +1,7 @@
 import mysql from 'mysql2/promise';
 import env from './env.js';
 
-// one shared pool is cheaper than a new connection per request
+// creates one shared mysql pool
 export const pool = mysql.createPool({
   host: env.db.host,
   user: env.db.user,

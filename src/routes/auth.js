@@ -1,3 +1,4 @@
+// register, login, logout, session check, password change
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { register, login, logout, me, changePassword } from '../controllers/authController.js';
@@ -6,6 +7,7 @@ import { isAuthenticated } from '../middleware/auth.js';
 
 const router = Router();
 
+// registration requires a valid mcgill email, password, and full name
 const registerRules = [
   validateEmail('email'),
   validatePassword('password'),
@@ -13,6 +15,7 @@ const registerRules = [
   body('lastName').trim().notEmpty().withMessage('lastName is required'),
 ];
 
+// login only needs email presence and a non-empty password
 const loginRules = [
   validateEmail('email'),
   body('password').notEmpty().withMessage('password is required'),

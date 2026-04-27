@@ -30,7 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(env.sessionSecret));
 app.use(sessionMiddleware());
 
-// static site from repo root; default file is homepage.html not index.html
+// static site from repo root
 const publicRoot = path.join(__dirname, '..');
 app.use(
   express.static(publicRoot, {
@@ -38,7 +38,6 @@ app.use(
   })
 );
 
-// json api under /api
 app.use('/api', apiRoutes);
 
 // unmatched routes then centralized error json

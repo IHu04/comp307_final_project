@@ -1,9 +1,10 @@
-// public owner discovery: owners with active slots, one owner's slots, invite token lookup
+// public owner discovery. owners with active slots, one owner's slots, invite token lookup
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk } from '../utils/apiResponse.js';
 import { formatDateOnly } from '../utils/dateSlot.js';
 
+// shapes a slot row into the public facing format
 function mapPublicSlot(row) {
   return {
     id: row.id,
@@ -14,6 +15,7 @@ function mapPublicSlot(row) {
   };
 }
 
+// returns all owners who have at least one future active slot
 export const listOwnersWithActiveSlots = asyncHandler(async (req, res) => {
   const [rows] = await pool.query(
     `SELECT u.id, u.first_name, u.last_name, u.email,
@@ -40,6 +42,7 @@ export const listOwnersWithActiveSlots = asyncHandler(async (req, res) => {
   sendOk(res, { owners });
 });
 
+// returns all future active slots for a specific owner
 export const listOwnerActiveSlots = asyncHandler(async (req, res) => {
   const ownerId = req.params.id;
 
@@ -64,6 +67,7 @@ export const listOwnerActiveSlots = asyncHandler(async (req, res) => {
   sendOk(res, { slots: slots.map(mapPublicSlot) });
 });
 
+// looks up an owner by their invite token and returns their active slots
 export const inviteByToken = asyncHandler(async (req, res) => {
   const token = String(req.params.token || '').trim();
   if (!token) {

@@ -1,3 +1,4 @@
+// role aware dashboard data for the logged in user
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.js';
 import { getDashboard } from '../controllers/dashboardController.js';

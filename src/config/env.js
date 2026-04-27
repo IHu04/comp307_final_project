@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-// fail fast when a required env var is missing
+// reads a required env value and throws if it is missing
 function mustSet(key) {
   const val = process.env[key];
   if (val === undefined || val === '') {
@@ -9,6 +9,7 @@ function mustSet(key) {
   return val;
 }
 
+// builds the cors origin value from env
 function corsOrigin() {
   const raw = process.env.FRONTEND_ORIGIN;
   if (raw == null || String(raw).trim() === '') {
@@ -24,6 +25,7 @@ function corsOrigin() {
   return parts;
 }
 
+// exports app config values for the rest of the server
 export default {
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',

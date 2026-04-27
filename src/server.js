@@ -1,14 +1,13 @@
 import app from './app.js';
+import env from './config/env.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { closeSessionStore } from './config/session.js';
-
-const port = parseInt(process.env.PORT || '3000', 10);
 
 async function main() {
   await connectDB();
 
-  const server = app.listen(port, () => {
-    console.log('Listening on http://localhost:' + port);
+  const server = app.listen(env.port, () => {
+    console.log('Listening on http://localhost:' + env.port);
   });
 
   async function stop(signal) {

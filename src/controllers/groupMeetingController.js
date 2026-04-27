@@ -17,10 +17,12 @@ import {
 import { isMcGillStudentEmail } from '../utils/mcgillEmail.js';
 import { ownerHasOverlappingSlot } from '../utils/slotOverlap.js';
 
+// joins first and last name into a display string
 function fullName(first, last) {
   return [first, last].filter(Boolean).join(' ').trim() || 'Unknown';
 }
 
+// shapes a group meeting row for the api response
 function mapMeetingRow(m) {
   return {
     id: m.id,
@@ -36,6 +38,7 @@ function mapMeetingRow(m) {
   };
 }
 
+// owner creates a group meeting with time options and invited participants
 export const createGroupMeeting = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const title =
@@ -147,8 +150,8 @@ export const createGroupMeeting = asyncHandler(async (req, res) => {
 
     for (const opt of normalizedOptions) {
       await connection.query(
-        `INSERT INTO group_meeting_options (group_meeting_id, date, start_time, end_time, vote_count)
-         VALUES (?, ?, ?, ?, 0)`,
+        `INSERT INTO group_meeting_options (group_meeting_id, date, start_time, end_time)
+         VALUES (?, ?, ?, ?)`,
         [meetingId, opt.date, opt.start, opt.end]
       );
     }
@@ -188,6 +191,7 @@ export const createGroupMeeting = asyncHandler(async (req, res) => {
   }
 });
 
+// fetches full meeting detail including options vote counts and participant list
 async function loadMeetingDetail(meetingId, currentUserId) {
   const [meetings] = await pool.query(
     `SELECT * FROM group_meetings WHERE id = ? LIMIT 1`,
@@ -237,6 +241,7 @@ async function loadMeetingDetail(meetingId, currentUserId) {
   };
 }
 
+// returns full detail for a single group meeting
 export const getGroupMeeting = asyncHandler(async (req, res) => {
   const meetingId = req.params.id;
   const userId = req.session.userId;
@@ -249,6 +254,7 @@ export const getGroupMeeting = asyncHandler(async (req, res) => {
   sendOk(res, { meeting: detail });
 });
 
+// records a participant's votes for one or more time options
 export const voteOnGroupMeeting = asyncHandler(async (req, res) => {
   const meetingId = req.params.id;
   const userId = req.session.userId;
@@ -331,6 +337,7 @@ export const voteOnGroupMeeting = asyncHandler(async (req, res) => {
   }
 });
 
+// owner picks the winning option and creates booking slots for all participants
 export const finalizeGroupMeeting = asyncHandler(async (req, res) => {
   const meetingId = req.params.id;
   const ownerId = req.session.userId;
@@ -510,6 +517,7 @@ export const retractVote = asyncHandler(async (req, res) => {
   sendOk(res, { meeting }, 200, 'Votes retracted');
 });
 
+// owner cancels the meeting, deletes any booking slots, and notifies participants
 export const cancelGroupMeeting = asyncHandler(async (req, res) => {
   const meetingId = req.params.id;
   const ownerId = req.session.userId;

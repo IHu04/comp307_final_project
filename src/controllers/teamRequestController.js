@@ -1,9 +1,10 @@
-// teamfinder: students post course teams; others join until max members, then it closes
+// teamfinder: students post course teams, others join until max members, then it closes
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendOk, sendCreated } from '../utils/apiResponse.js';
 import { buildMailtoUri } from '../utils/mailto.js';
 
+// shapes a user row into a small public object
 function mapPublicUser(row) {
   if (!row) return null;
   return {
@@ -34,6 +35,7 @@ export function mapListItem(row) {
   };
 }
 
+// shapes a full team request with members for the api response
 function mapDetail(tr, members, creatorRow) {
   return {
     id: tr.id,
@@ -55,6 +57,7 @@ function mapDetail(tr, members, creatorRow) {
   };
 }
 
+// creates a new team listing and adds the creator as the first member
 export const createTeamRequest = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const courseCode = String(req.body.courseCode || '').trim().slice(0, 20);
@@ -135,6 +138,7 @@ export const createTeamRequest = asyncHandler(async (req, res) => {
   }
 });
 
+// returns open team listings optionally filtered by course code
 export const listTeamRequests = asyncHandler(async (req, res) => {
   const raw = req.query.courseCode;
   const filter =
@@ -168,6 +172,7 @@ export const listTeamRequests = asyncHandler(async (req, res) => {
   sendOk(res, { teamRequests: rows.map(mapListItem) });
 });
 
+// fetches a single team request with full member list
 export const getTeamRequest = asyncHandler(async (req, res) => {
   const teamId = req.params.id;
 
@@ -202,6 +207,7 @@ export const getTeamRequest = asyncHandler(async (req, res) => {
   sendOk(res, { teamRequest: mapDetail(tr, memberRows, creatorRow) });
 });
 
+// adds the current user to a team and closes the listing when it reaches max members
 export const joinTeamRequest = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const teamId = req.params.id;
@@ -252,11 +258,7 @@ export const joinTeamRequest = asyncHandler(async (req, res) => {
       throw e;
     }
 
-    const [countAfter] = await connection.query(
-      'SELECT COUNT(*) AS cnt FROM team_members WHERE team_request_id = ?',
-      [teamId]
-    );
-    if (Number(countAfter[0].cnt) >= tr.max_members) {
+    if (memberCount + 1 >= tr.max_members) {
       await connection.query('UPDATE team_requests SET is_open = FALSE WHERE id = ?', [teamId]);
     }
 
@@ -286,6 +288,7 @@ export const joinTeamRequest = asyncHandler(async (req, res) => {
   }
 });
 
+// removes the current user from a team and reopens the listing if it was full
 export const leaveTeamRequest = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
   const teamId = req.params.id;
@@ -357,6 +360,7 @@ export const leaveTeamRequest = asyncHandler(async (req, res) => {
   }
 });
 
+// lets the creator kick a specific member from their team
 export const removeTeamMember = asyncHandler(async (req, res) => {
   const teamId = req.params.id;
   const targetUserId = parseInt(req.params.userId, 10);
@@ -408,6 +412,7 @@ export const removeTeamMember = asyncHandler(async (req, res) => {
   }
 });
 
+// deletes the team listing entirely
 export const deleteTeamRequest = asyncHandler(async (req, res) => {
   const teamId = req.params.id;
   await pool.query('DELETE FROM team_requests WHERE id = ?', [teamId]);

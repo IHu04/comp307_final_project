@@ -1,6 +1,6 @@
--- users: both @mcgill.ca and @mail.mcgill.ca can register (no role column).
--- App sets is_owner TRUE for @mcgill.ca, FALSE for @mail.mcgill.ca.
--- invite_token: optional; app can set for owners at registration (UUID / nanoid, max 64).
+-- users: both @mcgill.ca and @mail.mcgill.ca can register
+-- App sets is_owner TRUE for @mcgill.ca, FALSE for @mail.mcgill.ca
+-- invite_token: optional, app can set for owners at registration 
 
 CREATE TABLE IF NOT EXISTS users (
   id INT NOT NULL AUTO_INCREMENT,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE KEY uk_users_invite_token (invite_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- express-mysql-session default columns: session_id, expires, data
+-- express-mysql-session default columns including session_id, expires, data
 
 CREATE TABLE IF NOT EXISTS sessions (
   session_id VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,

@@ -15,6 +15,7 @@ import { buildMailtoUri } from '../utils/mailto.js';
 import { ownerHasOverlappingSlot } from '../utils/slotOverlap.js';
 import { formatDateOnly } from '../utils/dateSlot.js';
 
+// shapes a slot row for the api response, optionally including booker info
 function mapSlot(row, booker = null) {
   return {
     id: row.id,
@@ -30,6 +31,7 @@ function mapSlot(row, booker = null) {
   };
 }
 
+// checks whether any two slots in the same day batch overlap each other
 function batchOverlaps(slotsOnSameDay) {
   const n = slotsOnSameDay.length;
   for (let i = 0; i < n; i++) {
@@ -44,6 +46,7 @@ function batchOverlaps(slotsOnSameDay) {
   return false;
 }
 
+// validates and inserts one or more slots as draft, checking for overlaps
 export const createSlots = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const slotsIn = req.body.slots;
@@ -155,6 +158,7 @@ export const createSlots = asyncHandler(async (req, res) => {
   }
 });
 
+// returns all slots belonging to the logged in owner including booker details
 export const listMySlots = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const [rows] = await pool.query(
@@ -185,6 +189,7 @@ export const listMySlots = asyncHandler(async (req, res) => {
   sendOk(res, { slots });
 });
 
+// moves a single draft slot to active so students can book it
 export const activateSlot = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const slotId = req.params.id;
@@ -244,6 +249,7 @@ export const activateSlot = asyncHandler(async (req, res) => {
   sendOk(res, { slot: mapSlot(rows[0], null) }, 200, 'Slot activated');
 });
 
+// activates multiple draft slots at once skipping any that fail validation
 export const bulkActivateSlots = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const raw = req.body.slotIds;
@@ -318,6 +324,7 @@ export const bulkActivateSlots = asyncHandler(async (req, res) => {
   );
 });
 
+// moves an active slot back to draft
 export const deactivateSlot = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const slotId = req.params.id;
@@ -357,6 +364,7 @@ export const deactivateSlot = asyncHandler(async (req, res) => {
   sendOk(res, { slot: mapSlot(rows[0], null) }, 200, 'Slot set to draft');
 });
 
+// deletes a slot and builds cancel mailto links for any affected bookers
 export const deleteSlot = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const slotId = req.params.id;
@@ -432,6 +440,7 @@ export const deleteSlot = asyncHandler(async (req, res) => {
   );
 });
 
+// returns a prebuilt mailto link for the owner to email the student who booked a slot
 export const getSlotMailto = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const slotId = req.params.id;

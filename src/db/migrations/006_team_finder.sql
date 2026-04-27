@@ -1,4 +1,4 @@
--- TeamFinder (optional): browse open team requests by course_code; creator manages members.
+-- TeamFinder, browse open team requests by course_code, creator manages members
 
 CREATE TABLE IF NOT EXISTS team_requests (
   id INT NOT NULL AUTO_INCREMENT,

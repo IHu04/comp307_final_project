@@ -1,3 +1,4 @@
+// group meeting polls, owner creates and finalizes, participants vote
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { isAuthenticated, isOwner, isResourceOwner } from '../middleware/auth.js';
@@ -19,6 +20,7 @@ const router = Router();
 
 const meetingIdParam = param('id').isInt({ min: 1 }).withMessage('id must be a positive integer');
 
+// owner provides a title, one or more time options, and participant emails
 const createRules = [
   body('title').optional({ values: 'null' }).isString().isLength({ max: 255 }),
   body('options').isArray({ min: 1 }),
@@ -28,12 +30,14 @@ const createRules = [
   body('participantEmails').isArray({ min: 1 }),
 ];
 
+// participant submits one or more option ids to vote on
 const voteRules = [
   meetingIdParam,
   body('optionIds').isArray({ min: 1 }),
   body('optionIds.*').isInt({ min: 1 }),
 ];
 
+// owner picks the winning option and optionally marks it recurring
 const finalizeRules = [
   meetingIdParam,
   body('selectedOptionId').isInt({ min: 1 }),
@@ -42,23 +46,13 @@ const finalizeRules = [
 ];
 
 router.post('/', isAuthenticated, isOwner, createRules, validate, createGroupMeeting);
+
+// view requires being the owner or a listed participant
 router.get('/:id', isAuthenticated, meetingIdParam, validate, canViewGroupMeeting, getGroupMeeting);
-router.post(
-  '/:id/vote',
-  isAuthenticated,
-  voteRules,
-  validate,
-  isGroupMeetingParticipant,
-  voteOnGroupMeeting
-);
-router.delete(
-  '/:id/vote',
-  isAuthenticated,
-  meetingIdParam,
-  validate,
-  isGroupMeetingParticipant,
-  retractVote
-);
+
+router.post('/:id/vote', isAuthenticated, voteRules, validate, isGroupMeetingParticipant, voteOnGroupMeeting);
+router.delete('/:id/vote', isAuthenticated, meetingIdParam, validate, isGroupMeetingParticipant, retractVote);
+
 router.patch(
   '/:id/finalize',
   isAuthenticated,

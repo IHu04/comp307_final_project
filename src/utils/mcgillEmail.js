@@ -3,7 +3,7 @@
 // both domains register; only @mcgill.ca gets owner flag
 
 // extract the domain part of an email, e.g. "mail.mcgill.ca"
-export function emailDomain(email) {
+function emailDomain(email) {
   const text = String(email).trim().toLowerCase();
   const at = text.indexOf('@');
   if (at < 1) return null;

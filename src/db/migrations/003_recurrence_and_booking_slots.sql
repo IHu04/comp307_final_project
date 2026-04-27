@@ -1,4 +1,4 @@
--- Type 3 recurring office hours patterns + bookable slots (draft until owner activates).
+-- Type 3 recurring office hours patterns + bookable slots (draft until owner activates)
 
 CREATE TABLE IF NOT EXISTS recurrence_patterns (
   id INT NOT NULL AUTO_INCREMENT,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS booking_slots (
   date DATE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
-  status ENUM('draft', 'active', 'booked', 'cancelled') NOT NULL DEFAULT 'draft',
+  status ENUM('draft', 'active', 'booked') NOT NULL DEFAULT 'draft',
   slot_type ENUM('office_hours', 'meeting_request', 'group_meeting') NOT NULL DEFAULT 'office_hours',
   recurrence_id INT NULL DEFAULT NULL,
   group_meeting_id INT NULL DEFAULT NULL,

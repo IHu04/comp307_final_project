@@ -1,8 +1,8 @@
 // dashboard json by role and ics export for the current user
-// owner sees their slots and pending items; student sees bookings and groups
+// owner sees their slots and pending items,student sees bookings and groups
 // the /appointments/export route streams an ics file for calendar apps
 import { webcrypto } from 'crypto';
-// ical-generator needs crypto.randomUUID; node 18 esm may not expose it as a global
+
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 
 import ical from 'ical-generator';
@@ -14,10 +14,12 @@ import { buildMailtoUri } from '../utils/mailto.js';
 import { slotDateTimesInMontreal } from '../utils/montrealSlot.js';
 import { mapListItem as mapTeamRequestListItem } from './teamRequestController.js';
 
+// joins first and last name into a display string
 function fullName(first, last) {
   return [first, last].filter(Boolean).join(' ').trim() || 'Unknown';
 }
 
+// shapes a booking slot row for the student dashboard
 function mapStudentRow(row) {
   const ownerName = fullName(row.owner_fn, row.owner_ln);
   const otherParty = {
@@ -46,6 +48,7 @@ function mapStudentRow(row) {
   };
 }
 
+// shapes a booking slot row for the owner dashboard
 function mapOwnerSlotRow(row) {
   const isGroupMeeting = row.slot_type === 'group_meeting';
   const booked = row.status === 'booked' && row.booked_by;
@@ -79,6 +82,7 @@ function mapOwnerSlotRow(row) {
   };
 }
 
+// returns role aware dashboard data for the logged in user
 export const getDashboard = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
 
@@ -262,6 +266,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
   });
 });
 
+// streams an ics calendar file of all booked appointments for the logged in user
 export const exportAppointmentsIcs = asyncHandler(async (req, res) => {
   const userId = req.session.userId;
 

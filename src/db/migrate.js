@@ -3,9 +3,11 @@ import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { pool } from '../config/db.js';
 
+// resolve the migrations folder relative to this file
 const here = path.dirname(fileURLToPath(import.meta.url));
 const folder = path.join(here, 'migrations');
 
+// strips sql line comments and splits the file into individual statements
 function sqlStatements(fileContents) {
   const withoutLineComments = fileContents.replace(/^\s*--.*$/gm, '');
   return withoutLineComments
@@ -14,6 +16,7 @@ function sqlStatements(fileContents) {
     .filter((s) => s.length > 0);
 }
 
+// creates the tracking table if it does not exist yet
 async function setupTrackingTable() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -24,6 +27,7 @@ async function setupTrackingTable() {
   `);
 }
 
+// returns a set of migration filenames that have already been applied
 async function alreadyRan() {
   const [rows] = await pool.query(
     'SELECT filename FROM schema_migrations ORDER BY filename'
@@ -40,6 +44,7 @@ export async function runMigration() {
   await setupTrackingTable();
   const done = await alreadyRan();
 
+  // read and sort all sql files so they run in filename order
   const files = (await readdir(folder))
     .filter((name) => name.endsWith('.sql'))
     .sort();
@@ -51,6 +56,8 @@ export async function runMigration() {
     }
     const fileText = await readFile(path.join(folder, name), 'utf8');
     const statements = sqlStatements(fileText);
+
+    // run each file in a transaction so a failure rolls back the whole file
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
@@ -77,6 +84,7 @@ export async function runMigration() {
   return ran;
 }
 
+// only runs when this file is invoked directly, not when imported
 const isMain =
   process.argv[1] &&
   import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;

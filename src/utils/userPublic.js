@@ -1,6 +1,6 @@
 // strips private fields (password_hash, etc.) before sending user data in api responses
 
-// maps a raw db row (snake_case) to the public-facing user shape (camelCase)
+// maps a raw db to the public-facing user shape
 export function toPublicUser(row) {
   if (!row) return null;
   return {

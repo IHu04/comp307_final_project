@@ -1,3 +1,4 @@
+// weekly recurring office hour patterns that generate draft slots in bulk
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { isAuthenticated, isOwner, isResourceOwner } from '../middleware/auth.js';
@@ -10,6 +11,7 @@ import {
 
 const router = Router();
 
+// owner provides a start date, how many weeks, and one or more day and time patterns
 const createRules = [
   validateDate('startDate'),
   body('numWeeks').isInt({ min: 1, max: 52 }),

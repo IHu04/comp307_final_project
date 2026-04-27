@@ -1,5 +1,5 @@
 // direct meeting requests between student and owner (type 1 booking)
-// student creates a pending request; owner accepts with a date and time or declines
+// student creates a pending request, owner accepts with a date and time or declines
 // accepting inserts a booking_slots row and returns a mailto link for the owner to notify the student
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -9,10 +9,12 @@ import { formatDateOnly } from '../utils/dateSlot.js';
 import { normalizeTime, isValidDateString, timeToMinutes, slotStartsInFuture } from '../utils/slotTime.js';
 import { ownerHasOverlappingSlot, userHasOverlappingBooking } from '../utils/slotOverlap.js';
 
+// joins first and last name into a display string
 function fullName(first, last) {
   return [first, last].filter(Boolean).join(' ').trim() || 'Unknown';
 }
 
+// shapes a meeting request row for the api response
 function mapRequestRow(r) {
   return {
     id: r.id,
@@ -25,6 +27,7 @@ function mapRequestRow(r) {
   };
 }
 
+// student submits a meeting request to an owner with an optional message
 export const createMeetingRequest = asyncHandler(async (req, res) => {
   const requesterId = req.session.userId;
   const ownerId = parseInt(req.body.ownerId, 10);
@@ -99,6 +102,7 @@ export const createMeetingRequest = asyncHandler(async (req, res) => {
 
 const ALLOWED_STATUS_FILTERS = ['pending', 'accepted', 'declined'];
 
+// returns requests sent to the logged in owner, optionally filtered by status
 export const listReceivedRequests = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const raw = req.query.status;
@@ -141,6 +145,7 @@ export const listReceivedRequests = asyncHandler(async (req, res) => {
   sendOk(res, { requests });
 });
 
+// returns requests the logged in student has sent
 export const listSentRequests = asyncHandler(async (req, res) => {
   const requesterId = req.session.userId;
 
@@ -168,6 +173,7 @@ export const listSentRequests = asyncHandler(async (req, res) => {
   sendOk(res, { requests });
 });
 
+// owner accepts or declines a pending request, accepting creates a booking slot
 export const updateMeetingRequest = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const requestId = req.params.id;
@@ -216,6 +222,7 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
 
     const [locked] = await connection.query(
       `SELECT mr.id, mr.requester_id, mr.owner_id, mr.message, mr.status,
+              mr.created_slot_id, mr.created_at,
               r.email AS requester_email, r.first_name AS requester_fn, r.last_name AS requester_ln
        FROM meeting_requests mr
        INNER JOIN users r ON mr.requester_id = r.id
@@ -247,12 +254,6 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
       );
       await connection.commit();
 
-      const [afterDecline] = await pool.query(
-        `SELECT id, requester_id, owner_id, message, status, created_slot_id, created_at
-         FROM meeting_requests WHERE id = ?`,
-        [requestId]
-      );
-
       const notifyRequesterMailto = buildMailtoUri(
         mr.requester_email,
         'McGill Bookings — meeting request update',
@@ -262,7 +263,7 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
       sendOk(
         res,
         {
-          request: mapRequestRow(afterDecline[0]),
+          request: { ...mapRequestRow(mr), status: 'declined' },
           notifyRequesterMailto,
         },
         200,
@@ -314,16 +315,10 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
       `Your meeting request was accepted.\n\nScheduled: ${dateStr} from ${String(st).slice(0, 5)} to ${String(et).slice(0, 5)}.`
     );
 
-    const [updated] = await pool.query(
-      `SELECT id, requester_id, owner_id, message, status, created_slot_id, created_at
-       FROM meeting_requests WHERE id = ?`,
-      [requestId]
-    );
-
     sendOk(
       res,
       {
-        request: mapRequestRow(updated[0]),
+        request: { ...mapRequestRow(mr), status: 'accepted', createdSlotId: newSlotId },
         createdSlotId: newSlotId,
         notifyRequesterMailto,
       },
