@@ -40,6 +40,7 @@ export const createRecurrencePatterns = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const patternsIn = req.body.patterns;
   const startDate = req.body.startDate;
+  const location = req.body.location ? String(req.body.location).trim().slice(0, 255) : null;
   let numWeeks = parseInt(req.body.numWeeks, 10);
 
   if (!Array.isArray(patternsIn) || patternsIn.length === 0) {
@@ -133,9 +134,9 @@ export const createRecurrencePatterns = asyncHandler(async (req, res) => {
         }
         await connection.query(
           `INSERT INTO booking_slots
-            (owner_id, date, start_time, end_time, status, slot_type, recurrence_id)
-           VALUES (?, ?, ?, ?, 'draft', 'office_hours', ?)`,
-          [ownerId, d, p.start, p.end, patternId]
+            (owner_id, date, start_time, end_time, status, slot_type, recurrence_id, location)
+           VALUES (?, ?, ?, ?, 'draft', 'office_hours', ?, ?)`,
+          [ownerId, d, p.start, p.end, patternId, location]
         );
         slotsGenerated += 1;
       }

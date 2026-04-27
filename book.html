@@ -482,7 +482,7 @@
             }
 
             try {
-                const { owners } = await API.get('/owners');
+                const { owners } = await API.get('/owners/all');
                 allOwners = owners || [];
                 renderOwners(allOwners);
             } catch (e) {
@@ -504,9 +504,12 @@
                 const div = document.createElement('div');
                 div.className = 'result-card';
                 const name = `${o.firstName} ${o.lastName}`;
+                const slotLabel = o.activeSlotCount > 0
+                    ? `${o.activeSlotCount} active slot(s)`
+                    : 'No active slots';
                 div.innerHTML = `
                     <div class="content">
-                        <h4>${name} <span style="font-weight:normal;color:#888;font-size:13px">— ${o.activeSlotCount} active slot(s)</span></h4>
+                        <h4>${name} <span style="font-weight:normal;color:#888;font-size:13px">— ${slotLabel}</span></h4>
                         <div class="actions">
                             <button onclick="requestMeeting(${o.id}, '${encodeURIComponent(name)}')">Request Meeting</button>
                             <button onclick="viewSlots(${o.id}, this)">View Slots</button>

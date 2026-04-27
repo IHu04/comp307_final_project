@@ -493,10 +493,16 @@
                     </div>
 
                     <div class="view">
-                        <div class="ok1">
-                            <button class="button active" id="yikes" onclick="openTab('meetings', this)">Meetings</button>
-                            <button class="button" onclick="openTab('active', this)">Active Slots</button>
-                            <button class="button" onclick="openTab('inactive', this)">Inactive Slots</button>
+                        <div class="ok1" style="display:flex;align-items:center;justify-content:space-between">
+                            <div>
+                                <button class="button active" id="yikes" onclick="openTab('meetings', this)">Meetings</button>
+                                <button class="button" onclick="openTab('active', this)">Active Slots</button>
+                                <button class="button" onclick="openTab('inactive', this)">Inactive Slots</button>
+                            </div>
+                            <button onclick="showInvite()" class="button"
+                                    style="border-left:1px solid rgba(255,255,255,0.4);padding-left:16px;margin-left:6px;border-top-right-radius:15px">
+                                🔗 Get Booking URL
+                            </button>
                         </div>
 
                         <div id="meetings" class="tab">
@@ -515,6 +521,13 @@
                         </div>
 
                         <div id="active" class="tab" style="display:none">
+
+                            <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+                                <button onclick="showInvite()"
+                                        style="padding:7px 14px;border:1px solid #1e78de;color:#1e78de;background:white;border-radius:6px;cursor:pointer;font-size:13px">
+                                    Get Booking URL
+                                </button>
+                            </div>
 
                             <div class="row header">
                                 <div>Date</div>
@@ -607,7 +620,7 @@
                     time: `${a.startTime.slice(0,5)}-${a.endTime.slice(0,5)}`,
                     with: a.otherParty ? a.otherParty.name : '',
                     email: a.otherParty ? a.otherParty.email : '',
-                    where: ' ',
+                    where: a.location || '—',
                     status: a.status,
                     slotType: a.slotType,
                     groupMeetingId: a.groupMeetingId || null,
@@ -886,7 +899,6 @@
                 }
                 if (type === 'active') {
                     actions = `
-                        <button onclick="showInvite()">Get URL</button>
                         <button onclick="deactivateSlot(${m.slotId})">Deactivate</button>
                         <button onclick="deleteSlot(${m.slotId})">Delete</button>
                     `;

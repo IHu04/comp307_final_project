@@ -190,12 +190,19 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
   const date = req.body.date;
   const startTime = req.body.startTime;
   const endTime = req.body.endTime;
+  const location = req.body.location ? String(req.body.location).trim().slice(0, 255) : null;
 
   if (status === 'accepted') {
     if (!date || !startTime || !endTime) {
       return res.status(422).json({
         success: false,
         message: 'date, startTime, and endTime are required when accepting',
+      });
+    }
+    if (!location) {
+      return res.status(422).json({
+        success: false,
+        message: 'location is required when accepting',
       });
     }
     if (!isValidDateString(date)) {
@@ -293,9 +300,9 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
 
     const [insertResult] = await connection.query(
       `INSERT INTO booking_slots
-        (owner_id, date, start_time, end_time, status, slot_type, booked_by, booked_at)
-       VALUES (?, ?, ?, ?, 'booked', 'meeting_request', ?, NOW())`,
-      [ownerId, date, st, et, mr.requester_id]
+        (owner_id, date, start_time, end_time, status, slot_type, booked_by, booked_at, location)
+       VALUES (?, ?, ?, ?, 'booked', 'meeting_request', ?, NOW(), ?)`,
+      [ownerId, date, st, et, mr.requester_id, location]
     );
 
     const newSlotId = insertResult.insertId;
@@ -313,7 +320,7 @@ export const updateMeetingRequest = asyncHandler(async (req, res) => {
     const notifyRequesterMailto = buildMailtoUri(
       mr.requester_email,
       'McGill Bookings — meeting request accepted',
-      `Your meeting request was accepted.\n\nScheduled: ${dateStr} from ${String(st).slice(0, 5)} to ${String(et).slice(0, 5)}.`
+      `Your meeting request was accepted.\n\nScheduled: ${dateStr} from ${String(st).slice(0, 5)} to ${String(et).slice(0, 5)}.\nLocation: ${location}`
     );
 
     sendOk(

@@ -28,6 +28,7 @@ function mapSlot(row, booker = null) {
     recurrenceId: row.recurrence_id,
     groupMeetingId: row.group_meeting_id,
     bookedAt: row.booked_at,
+    location: row.location ?? null,
     booker,
   };
 }
@@ -98,8 +99,9 @@ export const createSlots = asyncHandler(async (req, res) => {
 
     const allowedTypes = ['office_hours', 'meeting_request'];
     const slotType = allowedTypes.includes(s?.slotType) ? s.slotType : 'office_hours';
+    const location = s?.location ? String(s.location).trim().slice(0, 255) : null;
 
-    normalized.push({ date, start, end, slotType });
+    normalized.push({ date, start, end, slotType, location });
   }
 
   const byDate = new Map();
@@ -136,13 +138,13 @@ export const createSlots = asyncHandler(async (req, res) => {
     for (const s of normalized) {
       const [result] = await connection.query(
         `INSERT INTO booking_slots
-          (owner_id, date, start_time, end_time, status, slot_type)
-         VALUES (?, ?, ?, ?, 'draft', ?)`,
-        [ownerId, s.date, s.start, s.end, s.slotType]
+          (owner_id, date, start_time, end_time, status, slot_type, location)
+         VALUES (?, ?, ?, ?, 'draft', ?, ?)`,
+        [ownerId, s.date, s.start, s.end, s.slotType, s.location]
       );
       const [rows] = await connection.query(
         `SELECT id, owner_id, date, start_time, end_time, status, slot_type,
-                recurrence_id, group_meeting_id, booked_by, booked_at, created_at
+                recurrence_id, group_meeting_id, booked_by, booked_at, created_at, location
          FROM booking_slots WHERE id = ?`,
         [result.insertId]
       );
@@ -164,7 +166,7 @@ export const listMySlots = asyncHandler(async (req, res) => {
   const ownerId = req.session.userId;
   const [rows] = await pool.query(
     `SELECT s.id, s.owner_id, s.date, s.start_time, s.end_time, s.status, s.slot_type,
-            s.recurrence_id, s.group_meeting_id, s.booked_by, s.booked_at, s.created_at,
+            s.recurrence_id, s.group_meeting_id, s.booked_by, s.booked_at, s.created_at, s.location,
             u.id AS booker_id, u.email AS booker_email,
             u.first_name AS booker_first_name, u.last_name AS booker_last_name
      FROM booking_slots s
@@ -243,7 +245,7 @@ export const activateSlot = asyncHandler(async (req, res) => {
 
   const [rows] = await pool.query(
     `SELECT id, owner_id, date, start_time, end_time, status, slot_type,
-            recurrence_id, group_meeting_id, booked_by, booked_at, created_at
+            recurrence_id, group_meeting_id, booked_by, booked_at, created_at, location
      FROM booking_slots WHERE id = ?`,
     [slotId]
   );
@@ -358,7 +360,7 @@ export const deactivateSlot = asyncHandler(async (req, res) => {
 
   const [rows] = await pool.query(
     `SELECT id, owner_id, date, start_time, end_time, status, slot_type,
-            recurrence_id, group_meeting_id, booked_by, booked_at, created_at
+            recurrence_id, group_meeting_id, booked_by, booked_at, created_at, location
      FROM booking_slots WHERE id = ?`,
     [slotId]
   );

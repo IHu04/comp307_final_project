@@ -116,30 +116,32 @@
                 <div class="intro">
                     <h2>McSlot Login - Sign on to McGill's Booking Platform</h2>
                 </div>
-                 <div class="left-inside">
-                    <p>McGill Student Login</p>
-                    <div class="email-student">
+                 <div class="left-inside" style="display:flex;gap:40px">
+                    <div>
+                        <p>McGill Student Login</p>
                         <input type="email" id="email-stu" placeholder="username@mail.mcgill.ca">
-                    </div>
-                    <div class="pass-student">
                         <input type="password" id="pass-stu" placeholder="password">
+                        <div style="margin-top:8px">
+                            <button class="button" id="stuBtn" type="button" style="width:auto;white-space:nowrap;padding:10px 16px">Student Login</button>
+                        </div>
                     </div>
 
-                    <p>McGill Staff Login</p>
-                    <div class="email-staff">
+                    <div style="width:1px;background:#e0e0e0;margin:0 4px"></div>
+
+                    <div>
+                        <p>McGill Staff Login</p>
                         <input type="email" id="email-sta" placeholder="username@mcgill.ca">
-                    </div>
-                    <div class="pass-staff">
                         <input type="password" id="pass-sta" placeholder="password">
+                        <div style="margin-top:8px">
+                            <button class="button" id="staBtn" type="button" style="width:auto;white-space:nowrap;padding:10px 16px">Staff Login</button>
+                        </div>
                     </div>
-
-                    <div id="err"></div>
-
                  </div>
+
+                 <div id="err"></div>
 
                  <div class="end">
                     <a href="homepage.html" class="button">Back</a>
-                    <button class="button" id="continueBtn" type="button">Continue</button>
                  </div>
             </div>
 
@@ -158,39 +160,35 @@
     }
 })();
 
-document.getElementById('continueBtn').addEventListener('click', async () => {
+async function doLogin(email, password) {
     const err = document.getElementById('err');
     err.textContent = '';
-
-    const stuEmail = document.getElementById('email-stu').value.trim();
-    const stuPass  = document.getElementById('pass-stu').value;
-    const staEmail = document.getElementById('email-sta').value.trim();
-    const staPass  = document.getElementById('pass-sta').value;
-
-    let email, password;
-    if (stuEmail || stuPass) {
-        email = stuEmail;
-        password = stuPass;
-    } else if (staEmail || staPass) {
-        email = staEmail;
-        password = staPass;
-    } else {
-        err.textContent = 'Please enter your email and password.';
-        return;
-    }
-
     if (!email || !password) {
         err.textContent = 'Both email and password are required.';
         return;
     }
-
     try {
         const data = await API.post('/auth/login', { email, password });
         const user = data.user;
-        window.location.href = user.isOwner ? 'owner-view.html' : 'view.html';
+        const next = new URLSearchParams(window.location.search).get('next');
+        window.location.href = next ? decodeURIComponent(next) : (user.isOwner ? 'owner-view.html' : 'view.html');
     } catch (e) {
         err.textContent = e.message || 'Login failed.';
     }
+}
+
+document.getElementById('stuBtn').addEventListener('click', () => {
+    doLogin(
+        document.getElementById('email-stu').value.trim(),
+        document.getElementById('pass-stu').value
+    );
+});
+
+document.getElementById('staBtn').addEventListener('click', () => {
+    doLogin(
+        document.getElementById('email-sta').value.trim(),
+        document.getElementById('pass-sta').value
+    );
 });
 </script>
 </body>

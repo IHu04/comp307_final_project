@@ -513,6 +513,9 @@
                         <label>End time
                             <input type="time" id="acc-end-${r.id}" />
                         </label>
+                        <label>Location
+                            <input type="text" id="acc-location-${r.id}" placeholder="e.g. Trottier 3090 or Zoom link" />
+                        </label>
                         <div style="display:flex;gap:8px;align-items:center">
                             <button class="btn-confirm-accept" onclick="submitAccept(${r.id}, '${email}')">Confirm</button>
                             <button class="btn-cancel-accept" onclick="toggleAcceptPanel(${r.id})">Cancel</button>
@@ -538,6 +541,7 @@
             const date      = document.getElementById(`acc-date-${id}`).value;
             const startTime = document.getElementById(`acc-start-${id}`).value;
             const endTime   = document.getElementById(`acc-end-${id}`).value;
+            const location  = document.getElementById(`acc-location-${id}`).value.trim();
             const err       = document.getElementById(`acc-err-${id}`);
 
             err.textContent = '';
@@ -545,10 +549,11 @@
             if (!startTime) { err.textContent = 'Please pick a start time.'; return; }
             if (!endTime)   { err.textContent = 'Please pick an end time.'; return; }
             if (endTime <= startTime) { err.textContent = 'End time must be after start time.'; return; }
+            if (!location)  { err.textContent = 'Please enter a location.'; return; }
 
             try {
                 const res = await API.patch(`/meeting-requests/${id}`, {
-                    status: 'accepted', date, startTime, endTime,
+                    status: 'accepted', date, startTime, endTime, location,
                 });
                 if (res && res.notifyRequesterMailto) {
                     window.open(res.notifyRequesterMailto, '_blank');

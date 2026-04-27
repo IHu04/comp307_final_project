@@ -741,6 +741,13 @@
                                     </div>
                                 </div>
 
+                                <!-- location field, shown for office hours and meeting slots -->
+                                <div id="location-row" style="display:none;margin-bottom:14px">
+                                    <label style="font-size:13px;color:#333">Location</label>
+                                    <input type="text" id="slot-location" placeholder="e.g. Trottier 3090 or Zoom link"
+                                           style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;margin-top:4px">
+                                </div>
+
                                 <!-- Office-Hours only: recurrence -->
                                 <div id="recur-wrap" style="display:none;margin-top:10px">
                                     <label><input type="checkbox" id="recur-check" /> Make recurring</label>
@@ -858,6 +865,7 @@
             document.getElementById('recur-wrap').style.display     = (type === 'office') ? 'block' : 'none';
             document.getElementById('group-wrap').style.display     = (type === 'group')  ? 'block' : 'none';
             document.getElementById('single-time-row').style.display = (type === 'group') ? 'none'  : 'grid';
+            document.getElementById('location-row').style.display    = (type === 'group') ? 'none'  : 'block';
 
             // seed one empty option row when switching to group for the first time
             if (type === 'group' && document.getElementById('gm-options-list').children.length === 0) {
@@ -887,6 +895,7 @@
             const date = document.getElementById('slot-date').value;
             const startTime = document.getElementById('slot-start').value;
             const endTime = document.getElementById('slot-end').value;
+            const location = document.getElementById('slot-location').value.trim();
             // group meetings use their own options list, not the shared date/time row
             if (selectedType !== 'group') {
                 if (!date || !startTime || !endTime) {
@@ -897,13 +906,17 @@
                     err.textContent = 'End time must be after start time.';
                     return;
                 }
+                if (!location) {
+                    err.textContent = 'Location is required.';
+                    return;
+                }
             }
 
             try {
                 if (selectedType === 'meeting') {
                     // One-off slot → create as draft, then activate so students can book it.
                     const data = await API.post('/slots', {
-                        slots: [{ date, startTime, endTime, slotType: 'meeting_request' }],
+                        slots: [{ date, startTime, endTime, slotType: 'meeting_request', location }],
                     });
     
                     alert('Meeting slot created!');
@@ -919,12 +932,13 @@
                         await API.post('/recurrence-patterns', {
                             startDate: date,
                             numWeeks,
+                            location,
                             patterns: [{ dayOfWeek: dow, startTime, endTime }],
                         });
                         alert(`Recurring office hours created for ${numWeeks} week(s)!`);
                     } else {
                         const data = await API.post('/slots', {
-                            slots: [{ date, startTime, endTime }],
+                            slots: [{ date, startTime, endTime, location }],
                         });
     
                         alert('Office-hours slot created!');

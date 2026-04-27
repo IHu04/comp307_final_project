@@ -43,6 +43,7 @@ function mapStudentRow(row) {
     endTime: String(row.end_time).slice(0, 8),
     status: row.status,
     slotType: row.slot_type,
+    location: row.location ?? null,
     otherParty,
     mailtoUri,
     canCancel: booked,
@@ -77,6 +78,7 @@ function mapOwnerSlotRow(row) {
     status: row.status,
     slotType: row.slot_type,
     groupMeetingId: row.group_meeting_id || null,
+    location: row.location ?? null,
     otherParty,
     mailtoUri,
     canCancel: Boolean(booked),
@@ -121,7 +123,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
   if (isOwner) {
     const [slots] = await pool.query(
       `SELECT s.id, s.date, s.start_time, s.end_time, s.status, s.slot_type,
-              s.booked_by, s.group_meeting_id,
+              s.booked_by, s.group_meeting_id, s.location,
               b.first_name AS booker_fn, b.last_name AS booker_ln, b.email AS booker_email,
               gm.title AS gm_title
        FROM booking_slots s
@@ -198,7 +200,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
 
   // student: own booked slots plus group meeting slots where they are a listed participant
   const [slots] = await pool.query(
-    `SELECT s.id, s.date, s.start_time, s.end_time, s.status, s.slot_type,
+    `SELECT s.id, s.date, s.start_time, s.end_time, s.status, s.slot_type, s.location,
             o.first_name AS owner_fn, o.last_name AS owner_ln, o.email AS owner_email
      FROM booking_slots s
      INNER JOIN users o ON s.owner_id = o.id

@@ -3,11 +3,15 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.js';
 import {
+  listAllOwners,
   listOwnersWithActiveSlots,
   listOwnerActiveSlots,
 } from '../controllers/ownerBrowseController.js';
 
 const router = Router();
+
+// returns every owner (with or without active slots) — used by the student booking page
+router.get('/all', isAuthenticated, listAllOwners);
 
 // returns all owners who currently have at least one bookable slot
 router.get('/', isAuthenticated, listOwnersWithActiveSlots);

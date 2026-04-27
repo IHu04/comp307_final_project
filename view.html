@@ -497,7 +497,7 @@
                     time: `${a.startTime.slice(0,5)}-${a.endTime.slice(0,5)}`,
                     with: a.otherParty ? a.otherParty.name : '—',
                     email: a.otherParty ? a.otherParty.email : '',
-                    where: ' ',
+                    where: a.location || '—',
                     canCancel: a.canCancel,
                     type: a.slotType,
                 };
