@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // weekly recurrence patterns (type 3 booking)
 // create inserts draft booking_slots for each generated week so the owner can bulk activate them
 // delete removes draft and active slots, booked slots are freed back to active with cancel mailto links

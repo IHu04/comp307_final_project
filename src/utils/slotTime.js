@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // time parsing, normalisation, and comparison utilities
 // all times are stored in mysql as TIME strings (HH:MM:SS)
 // we compare times using minute-offsets from midnight to detect overlaps without full Date objects

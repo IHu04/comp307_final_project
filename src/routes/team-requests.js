@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // teamfinder listings, students create and join open teams by course code
 import { Router } from 'express';
 import { body, query } from 'express-validator';

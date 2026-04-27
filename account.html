@@ -789,7 +789,9 @@
         document.getElementById('infoName').textContent = `${currentUser.firstName} ${currentUser.lastName}`;
         document.getElementById('infoEmail').textContent = currentUser.email;
         document.getElementById('infoRole').textContent = currentUser.isOwner ? 'Professor/TA (Owner)' : 'Student';
-        document.getElementById('infoSince').textContent = currentUser.createdAt || 'January 2026';
+        document.getElementById('infoSince').textContent = currentUser.createdAt
+            ? new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+            : 'January 2026';
         
         
         

@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // register, login, logout, session check, password change
 import { Router } from 'express';
 import { body } from 'express-validator';

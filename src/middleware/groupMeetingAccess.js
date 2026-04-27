@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 

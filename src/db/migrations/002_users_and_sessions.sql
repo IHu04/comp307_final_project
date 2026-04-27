@@ -1,3 +1,4 @@
+-- Author: Isaac Hu
 -- users: both @mcgill.ca and @mail.mcgill.ca can register
 -- App sets is_owner TRUE for @mcgill.ca, FALSE for @mail.mcgill.ca
 -- invite_token: optional, app can set for owners at registration 

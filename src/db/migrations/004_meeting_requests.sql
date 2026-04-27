@@ -1,3 +1,4 @@
+-- Author: Isaac Hu
 -- User asks an owner for a meeting, owner accepts (new booking_slot + created_slot_id) or declines
 
 CREATE TABLE IF NOT EXISTS meeting_requests (

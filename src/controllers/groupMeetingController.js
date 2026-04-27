@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // group meeting time polls (type 2 booking)
 // owner creates a meeting with time options and participant emails
 // students vote or retract votes; owner finalizes and creates booking_slots rows

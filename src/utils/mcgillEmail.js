@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // email domain helpers for mcgill address validation
 // @mcgill.ca = professor/ta (is_owner = true), @mail.mcgill.ca = student (is_owner = false)
 // both domains register; only @mcgill.ca gets owner flag

@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // thin helpers so responses share { success, message, data }
 
 // 200 (or custom code) success response

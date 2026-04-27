@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // generates calendar dates for a weekly recurring slot pattern
 // day-of-week convention used by the recurrence_patterns table: 0=monday, 1=tuesday ... 6=sunday
 // this differs from iso 8601 (1=mon..7=sun) and js Date.getDay() (0=sun..6=sat)

@@ -1,3 +1,4 @@
+-- Author: Isaac Hu
 -- TeamFinder, browse open team requests by course_code, creator manages members
 
 CREATE TABLE IF NOT EXISTS team_requests (

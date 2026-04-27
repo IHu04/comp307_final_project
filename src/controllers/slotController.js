@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // owner-side office hour slots with draft, active, and booked states
 // draft is hidden from students; active is bookable; booked is reserved
 // overlap checks run inside transactions with select for update to prevent double booking

@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // strips private fields (password_hash, etc.) before sending user data in api responses
 
 // maps a raw db to the public-facing user shape

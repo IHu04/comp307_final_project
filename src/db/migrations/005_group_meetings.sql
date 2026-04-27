@@ -1,3 +1,4 @@
+-- Author: Isaac Hu
 -- Calendar voting, owner proposes options, participants vote, owner finalizes (optionally recurring)
 
 CREATE TABLE IF NOT EXISTS group_meetings (

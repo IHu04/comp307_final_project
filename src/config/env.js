@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 import 'dotenv/config';
 
 // reads a required env value and throws if it is missing

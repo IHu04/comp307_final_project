@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // register, login, logout, session helpers, password change
 // on login or register: regenerate session to avoid fixation, then store user id
 // on logout: destroy session and clear the cookie

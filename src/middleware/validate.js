@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // shared express-validator chains, call validate() last in the route to return 422 with details
 import { body, param, validationResult } from 'express-validator';
 import { isMcGillStudentEmail } from '../utils/mcgillEmail.js';

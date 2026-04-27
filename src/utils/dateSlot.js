@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // utilities for working with mysql DATE values
 // mysql2 returns DATE columns as js Date objects set to midnight utc
 // we always use utc accessors so the formatted string is correct regardless of server timezone

@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // student sends a meeting request to an owner, owner accepts or declines
 import { Router } from 'express';
 import { body, param } from 'express-validator';

@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // interprets slot dates and times in america/montreal for ics calendar export
 // slots are stored as plain DATE + TIME in mysql (no timezone)
 // when building vevent entries we anchor them in the local timezone so calendar apps show the right time

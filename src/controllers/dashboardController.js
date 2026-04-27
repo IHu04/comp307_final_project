@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // dashboard json by role and ics export for the current user
 // owner sees their slots and pending items,student sees bookings and groups
 // the /appointments/export route streams an ics file for calendar apps

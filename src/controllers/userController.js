@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // profile and password change for the logged in user
 import bcrypt from 'bcrypt';
 import { pool } from '../config/db.js';

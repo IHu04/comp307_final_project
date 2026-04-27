@@ -1,3 +1,4 @@
+-- Author: Isaac Hu
 -- Type 3 recurring office hours patterns + bookable slots (draft until owner activates)
 
 CREATE TABLE IF NOT EXISTS recurrence_patterns (

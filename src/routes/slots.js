@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // owner manages their booking slots, students book or cancel
 import { Router } from 'express';
 import { body } from 'express-validator';

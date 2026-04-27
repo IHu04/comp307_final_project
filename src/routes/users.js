@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // profile read and update for the logged in user
 import { Router } from 'express';
 import { body } from 'express-validator';

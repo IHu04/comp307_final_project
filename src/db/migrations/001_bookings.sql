@@ -1,3 +1,4 @@
+-- Author: Isaac Hu
 CREATE TABLE IF NOT EXISTS bookings (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   student_email VARCHAR(255) NOT NULL,

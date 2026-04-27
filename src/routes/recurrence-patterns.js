@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // weekly recurring office hour patterns that generate draft slots in bulk
 import { Router } from 'express';
 import { body } from 'express-validator';

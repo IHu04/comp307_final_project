@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // builds mailto: uris for owner/student email notifications
 // uses mailto links instead of smtp so the app has no email server dependency
 // the generated uri pre-populates subject and body in the user's default mail client

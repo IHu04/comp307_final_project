@@ -1,9 +1,10 @@
+// Author: Isaac Hu
 import session from 'express-session';
 import MySQLStoreFactory from 'express-mysql-session';
 import env from './env.js';
 import { pool } from './db.js';
 
-// wires the mysql session store to the express-session library
+// wires the mysql session store to the express session library
 const MySQLStore = MySQLStoreFactory(session);
 
 // one day in milliseconds used for both session expiry and cookie lifetime

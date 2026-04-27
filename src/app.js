@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';

@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // public owner discovery for students browsing who has open slots
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.js';

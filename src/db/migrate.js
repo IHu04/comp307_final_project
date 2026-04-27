@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 import { readFile, readdir } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';

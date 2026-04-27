@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // group meeting polls, owner creates and finalizes, participants vote
 import { Router } from 'express';
 import { body, param } from 'express-validator';

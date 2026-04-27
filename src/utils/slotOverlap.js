@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // db level overlap queries used before inserting or activating slots
 import { normalizeTime, rangesOverlap } from './slotTime.js';
 import { sameCalendarDay } from './dateSlot.js';

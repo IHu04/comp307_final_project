@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // direct meeting requests between student and owner (type 1 booking)
 // student creates a pending request, owner accepts with a date and time or declines
 // accepting inserts a booking_slots row and returns a mailto link for the owner to notify the student

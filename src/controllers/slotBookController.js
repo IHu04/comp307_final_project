@@ -1,3 +1,4 @@
+// Author: Isaac Hu
 // student books a slot with row locks and conflict checks; cancel frees the slot and notifies owner
 import { pool } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
