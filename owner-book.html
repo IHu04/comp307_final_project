@@ -990,6 +990,7 @@
         }
 
         init();
+        pickCard('meeting');
         // fade out before navigating so sidebar clicks don't flash
         document.querySelectorAll('.slide a[href]').forEach(a => {
             a.addEventListener('click', e => {
