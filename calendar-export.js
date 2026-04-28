@@ -1,5 +1,5 @@
 // Calendar Export Feature
-// Zoe Droulias
+// Author: Zoe Droulias
 
 // take JS Date obj, return ICS-formatted datetime string (local time, no UTC conversion)
 function formatDateToICS(date) {
