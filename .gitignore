@@ -2,10 +2,5 @@ node_modules/
 test/
 .env
 dist/
-*.log
 .DS_Store
-.claude/
-.cursor/
-BACKEND.md
-BACKEND_DOC.md
 schema.html
