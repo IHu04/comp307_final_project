@@ -14,8 +14,8 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    overflow-x: hidden;
 }
-
 
 .card {
     background-color: white;
@@ -24,7 +24,6 @@ body {
     border-radius: 20px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
-
 
 .toggle {
     display: flex;
@@ -35,7 +34,6 @@ body {
 .card input[type="radio"]{
     display: none;
 }
-
 
 .toggle label {
     flex: 1;
@@ -125,6 +123,18 @@ input[type="text"], input[type="email"], input[type="password"] {
 
 .button:hover {
     background-color: #b22d0a;;
+}
+
+@media (max-width: 850px) {
+    .card {
+        width: 500px
+    }
+}
+
+@media (max-width: 600px) {
+    .card {
+        width: 350px;
+    }
 }
 
 </style>
