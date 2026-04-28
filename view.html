@@ -317,6 +317,16 @@
             color: #ED1B2F;
         }
 
+        @media (max-width: 768px) {
+            .main { margin-left: 0; padding: 15px; width: 100%; box-sizing: border-box; }
+            .left h3 { font-size: 20px; }
+            .right a { font-size: 14px; padding: 16px 8px; }
+            .view { overflow-x: auto; }
+            .row { min-width: 480px; }
+            .ok1 { flex-wrap: wrap; margin-left: 0; }
+            .m { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+
 </style>
 
 <body>
@@ -490,10 +500,12 @@
             buckets.office = [];
 
             appointments.forEach(a => {
+                const endTime = a.endTime ? a.endTime.slice(0, 8) : null;
+                if (endTime && new Date(`${a.date}T${endTime}`) < new Date()) return;
                 const entry = {
                     slotId: a.slotId,
                     date: a.date,
-                    endTime: a.endTime ? a.endTime.slice(0, 8) : null,
+                    endTime,
                     time: `${a.startTime.slice(0,5)}-${a.endTime.slice(0,5)}`,
                     with: a.otherParty ? a.otherParty.name : '-',
                     email: a.otherParty ? a.otherParty.email : '',
@@ -793,6 +805,15 @@
         }
 
         init();
+        const _mq = window.matchMedia('(max-width: 768px)');
+        function _handleMq(e) {
+            const slide = document.getElementById('slide1');
+            const main = document.querySelector('.main');
+            if (e.matches) { slide.classList.add('hidden'); main.classList.add('shifted'); }
+            else { slide.classList.remove('hidden'); main.classList.remove('shifted'); }
+        }
+        _mq.addEventListener('change', _handleMq);
+        _handleMq(_mq);
 
         // fade out before navigating so sidebar clicks don't flash
         document.querySelectorAll('.slide a[href]').forEach(a => {

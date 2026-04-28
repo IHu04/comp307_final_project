@@ -508,17 +508,12 @@
         }
 
         /* Responsive */
-        @media (max-width: 900px) {
-            .ok {
-                margin-left: 20px;
-                padding: 20px;
-            }
-            .sidebar {
-                transform: translateX(-260px);
-            }
-            .toggle-btn {
-                left: 0;
-            }
+        @media (max-width: 768px) {
+            .main { margin-left: 0; padding: 15px; width: 100%; box-sizing: border-box; }
+            .left h3 { font-size: 20px; }
+            .right a { font-size: 14px; padding: 16px 8px; }
+            .account-container { flex-direction: column; }
+            .profile-card, .settings-card { min-width: unset; width: 100%; }
         }
     </style>
 </head>
@@ -921,6 +916,15 @@
     }
     
     init();
+    const _mq = window.matchMedia('(max-width: 768px)');
+    function _handleMq(e) {
+        const slide = document.getElementById('slide1');
+        const main = document.querySelector('.main');
+        if (e.matches) { slide.classList.add('hidden'); main.classList.add('shifted'); }
+        else { slide.classList.remove('hidden'); main.classList.remove('shifted'); }
+    }
+    _mq.addEventListener('change', _handleMq);
+    _handleMq(_mq);
 </script>
 </body>
 </html>

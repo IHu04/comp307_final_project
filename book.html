@@ -319,12 +319,16 @@
             border: 1px solid #ED1B2F;
             color:#ED1B2F;
         }
-        
 
-     
-
-
- 
+        @media (max-width: 768px) {
+            .main { margin-left: 0; padding: 15px; width: 100%; box-sizing: border-box; }
+            .left h3 { font-size: 20px; }
+            .right a { font-size: 14px; padding: 16px 8px; }
+            .rectangle { width: 100%; box-sizing: border-box; }
+            #results { width: 100%; }
+            .result-card .content { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .actions { padding-right: 0; flex-wrap: wrap; }
+        }
 
 </Style>
 <body>
@@ -614,6 +618,15 @@
         }
 
         init();
+        const _mq = window.matchMedia('(max-width: 768px)');
+        function _handleMq(e) {
+            const slide = document.getElementById('slide1');
+            const main = document.querySelector('.main');
+            if (e.matches) { slide.classList.add('hidden'); main.classList.add('shifted'); }
+            else { slide.classList.remove('hidden'); main.classList.remove('shifted'); }
+        }
+        _mq.addEventListener('change', _handleMq);
+        _handleMq(_mq);
         // fade out before navigating so sidebar clicks don't flash
         document.querySelectorAll('.slide a[href]').forEach(a => {
             a.addEventListener('click', e => {
